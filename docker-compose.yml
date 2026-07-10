@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_mahasiswa
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: portal_mahasiswa
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app_network
+
+  php:
+    image: php:8.2-apache
+    container_name: php_flutter_api
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./flutter_api:/var/www/html/flutter_api
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+    command: >
+      bash -c "
+        docker-php-ext-install mysqli &&
+        apache2-foreground
+      "
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
+    driver: bridge

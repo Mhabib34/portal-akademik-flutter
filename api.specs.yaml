@@ -1,0 +1,1427 @@
+openapi: 3.0.3
+info:
+  title: Portal Akademik Mahasiswa API
+  description: >
+    API untuk aplikasi Portal Akademik (Flutter) dengan 3 role: admin, dosen,
+    dan mahasiswa (role='user' di database, mengikuti kode existing).
+    Versi ini menambahkan autentikasi berbasis token (Bearer) menggantikan
+    pengiriman user_id/role polos di request lama.
+
+    CATATAN IMPLEMENTASI: untuk mendukung token, backend PHP perlu tambahan
+    tabel `auth_tokens` (id, user_id, token, expires_at) atau kolom token di
+    tabel users. Setiap endpoint bertanda 🔒 wajib mengirim header
+    `Authorization: Bearer <token>`, dan backend PHP perlu middleware/fungsi
+    helper untuk validasi token + ambil user_id & role dari token tsb sebelum
+    memproses request (menggantikan parameter user_id/role manual).
+  version: "2.0.0"
+
+servers:
+  - url: http://10.10.1.159/flutter_api
+    description: Local development server (XAMPP/Docker)
+
+tags:
+  - name: Auth
+  - name: Mahasiswa
+  - name: Dosen
+  - name: Mata Kuliah
+  - name: Ruang
+  - name: Tahun Ajaran
+  - name: Kelas
+  - name: Jadwal
+  - name: KRS
+  - name: Nilai
+  - name: Sistem
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-token
+      description: >
+        Token didapat dari response login.php, dikirim sebagai
+        "Authorization: Bearer <token>" di setiap request yang butuh autentikasi.
+
+  schemas:
+    # ---------------- Generic ----------------
+    ApiResponseOk:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        message:
+          type: string
+
+    ApiResponseError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+
+    # ---------------- Auth ----------------
+    LoginResponseData:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "a1b2c3d4e5f6..."
+        expires_at:
+          type: string
+          format: date-time
+        id:
+          type: string
+        nama:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, dosen, user]
+        nim:
+          type: string
+          nullable: true
+        nidn:
+          type: string
+          nullable: true
+        must_change_password:
+          type: integer
+          enum: [0, 1]
+        is_active:
+          type: integer
+          enum: [0, 1]
+
+    # ---------------- Mahasiswa ----------------
+    Mahasiswa:
+      type: object
+      properties:
+        id:
+          type: string
+        nim:
+          type: string
+        nama:
+          type: string
+        jurusan:
+          type: string
+        alamat:
+          type: string
+        user_id:
+          type: string
+        is_active:
+          type: integer
+        must_change_password:
+          type: integer
+
+    # ---------------- Dosen ----------------
+    Dosen:
+      type: object
+      properties:
+        id:
+          type: string
+        nidn:
+          type: string
+        nama:
+          type: string
+        no_hp:
+          type: string
+        user_id:
+          type: string
+        is_active:
+          type: integer
+        must_change_password:
+          type: integer
+
+    # ---------------- Mata Kuliah ----------------
+    MataKuliah:
+      type: object
+      properties:
+        id:
+          type: string
+        kode_mk:
+          type: string
+        nama_mk:
+          type: string
+        sks:
+          type: integer
+        jurusan:
+          type: string
+        semester_ke:
+          type: integer
+        deskripsi:
+          type: string
+
+    # ---------------- Ruang ----------------
+    Ruang:
+      type: object
+      properties:
+        id:
+          type: string
+        nama_ruang:
+          type: string
+        gedung:
+          type: string
+        kapasitas:
+          type: integer
+
+    # ---------------- Tahun Ajaran ----------------
+    TahunAjaran:
+      type: object
+      properties:
+        id:
+          type: string
+        nama:
+          type: string
+          example: "2025/2026"
+        semester:
+          type: string
+          enum: [Ganjil, Genap]
+        is_aktif:
+          type: integer
+          enum: [0, 1]
+
+    # ---------------- Kelas ----------------
+    Kelas:
+      type: object
+      properties:
+        id:
+          type: string
+        mata_kuliah_id:
+          type: string
+        kode_mk:
+          type: string
+        nama_mk:
+          type: string
+        sks:
+          type: integer
+        tahun_ajaran_id:
+          type: string
+        dosen_id:
+          type: string
+        nama_dosen:
+          type: string
+        nama_kelas:
+          type: string
+          example: "A"
+        kapasitas:
+          type: integer
+        jumlah_terisi:
+          type: integer
+          description: jumlah mahasiswa yang sudah KRS di kelas ini (disetujui)
+
+    # ---------------- Jadwal ----------------
+    Jadwal:
+      type: object
+      properties:
+        id:
+          type: string
+        kelas_id:
+          type: string
+        nama_mk:
+          type: string
+        nama_kelas:
+          type: string
+        ruang_id:
+          type: string
+        nama_ruang:
+          type: string
+        hari:
+          type: string
+          enum: [Senin, Selasa, Rabu, Kamis, Jumat, Sabtu]
+        jam_mulai:
+          type: string
+          example: "08:00"
+        jam_selesai:
+          type: string
+          example: "09:40"
+        dosen:
+          type: string
+
+    # ---------------- KRS ----------------
+    KrsItem:
+      type: object
+      properties:
+        kelas_id:
+          type: string
+        nama_mk:
+          type: string
+        nama_kelas:
+          type: string
+        sks:
+          type: integer
+        dosen:
+          type: string
+
+    Krs:
+      type: object
+      properties:
+        id:
+          type: string
+        mahasiswa_id:
+          type: string
+        nama_mahasiswa:
+          type: string
+        nim:
+          type: string
+        tahun_ajaran_id:
+          type: string
+        status:
+          type: string
+          enum: [menunggu, disetujui, ditolak]
+        catatan_admin:
+          type: string
+          nullable: true
+        tanggal_ajuan:
+          type: string
+          format: date-time
+        tanggal_keputusan:
+          type: string
+          format: date-time
+          nullable: true
+        total_sks:
+          type: integer
+        mata_kuliah:
+          type: array
+          items:
+            $ref: '#/components/schemas/KrsItem'
+
+    # ---------------- Nilai ----------------
+    Nilai:
+      type: object
+      properties:
+        id:
+          type: string
+        mahasiswa_id:
+          type: string
+        nim:
+          type: string
+        nama_mahasiswa:
+          type: string
+        kelas_id:
+          type: string
+        nama_mk:
+          type: string
+        sks:
+          type: integer
+        tugas:
+          type: number
+          format: float
+        uts:
+          type: number
+          format: float
+        uas:
+          type: number
+          format: float
+        nilai_angka:
+          type: number
+          format: float
+        nilai_huruf:
+          type: string
+          example: "A"
+        bobot:
+          type: number
+          format: float
+
+    Khs:
+      type: object
+      properties:
+        tahun_ajaran:
+          type: string
+        ip_semester:
+          type: number
+          format: float
+        ipk_kumulatif:
+          type: number
+          format: float
+        total_sks_semester:
+          type: integer
+        total_sks_kumulatif:
+          type: integer
+        mata_kuliah:
+          type: array
+          items:
+            $ref: '#/components/schemas/Nilai'
+
+paths:
+  # ============================================================
+  # SISTEM
+  # ============================================================
+  /cek_koneksi.php:
+    get:
+      tags: [Sistem]
+      summary: Cek status API & koneksi database
+      security: []
+      responses:
+        '200':
+          description: API & DB normal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # AUTH
+  # ============================================================
+  /login.php:
+    post:
+      tags: [Auth]
+      summary: Login (admin/dosen/mahasiswa)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login berhasil atau gagal (lihat field status)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponseData'
+
+  /logout.php:
+    post:
+      tags: [Auth]
+      summary: Logout (invalidasi token) 🔒
+      responses:
+        '200':
+          description: Logout berhasil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /change_password.php:
+    post:
+      tags: [Auth]
+      summary: Ganti password sendiri (wajib saat first login) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [password_baru]
+              properties:
+                password_baru:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: Password berhasil diubah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /reset_password.php:
+    post:
+      tags: [Auth]
+      summary: Admin reset password user (mahasiswa/dosen) ke NIM/NIDN 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: string
+      responses:
+        '200':
+          description: Password berhasil direset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /toggle_aktif.php:
+    post:
+      tags: [Auth]
+      summary: Admin aktif/nonaktifkan akun user (mahasiswa/dosen) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: string
+      responses:
+        '200':
+          description: Status akun berhasil diubah
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      is_active:
+                        type: integer
+
+  # ============================================================
+  # MAHASISWA
+  # ============================================================
+  /get_mahasiswa.php:
+    get:
+      tags: [Mahasiswa]
+      summary: Ambil data mahasiswa (admin= semua, mahasiswa= data sendiri) 🔒
+      responses:
+        '200':
+          description: Daftar/detail mahasiswa
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        oneOf:
+                          - type: array
+                            items:
+                              $ref: '#/components/schemas/Mahasiswa'
+                          - $ref: '#/components/schemas/Mahasiswa'
+
+  /simpan_mahasiswa.php:
+    post:
+      tags: [Mahasiswa]
+      summary: Tambah mahasiswa baru + auto-buat akun (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nim, nama, jurusan]
+              properties:
+                nim:
+                  type: string
+                nama:
+                  type: string
+                jurusan:
+                  type: string
+                alamat:
+                  type: string
+      responses:
+        '200':
+          description: Mahasiswa berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /update_mahasiswa.php:
+    post:
+      tags: [Mahasiswa]
+      summary: Update data mahasiswa (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, nim, nama, jurusan]
+              properties:
+                id:
+                  type: string
+                nim:
+                  type: string
+                nama:
+                  type: string
+                jurusan:
+                  type: string
+                alamat:
+                  type: string
+      responses:
+        '200':
+          description: Data berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /delete_mahasiswa.php:
+    post:
+      tags: [Mahasiswa]
+      summary: Hapus mahasiswa + akun user (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Data berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # DOSEN
+  # ============================================================
+  /get_dosen.php:
+    get:
+      tags: [Dosen]
+      summary: Ambil data dosen (admin= semua, dosen= data sendiri) 🔒
+      responses:
+        '200':
+          description: Daftar/detail dosen
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        oneOf:
+                          - type: array
+                            items:
+                              $ref: '#/components/schemas/Dosen'
+                          - $ref: '#/components/schemas/Dosen'
+
+  /simpan_dosen.php:
+    post:
+      tags: [Dosen]
+      summary: Tambah dosen baru + auto-buat akun, username/password = NIDN (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nidn, nama]
+              properties:
+                nidn:
+                  type: string
+                nama:
+                  type: string
+                no_hp:
+                  type: string
+      responses:
+        '200':
+          description: Dosen berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /update_dosen.php:
+    post:
+      tags: [Dosen]
+      summary: Update data dosen (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, nidn, nama]
+              properties:
+                id:
+                  type: string
+                nidn:
+                  type: string
+                nama:
+                  type: string
+                no_hp:
+                  type: string
+      responses:
+        '200':
+          description: Data berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /delete_dosen.php:
+    post:
+      tags: [Dosen]
+      summary: Hapus dosen + akun user (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Data berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # MATA KULIAH
+  # ============================================================
+  /get_mata_kuliah.php:
+    get:
+      tags: [Mata Kuliah]
+      summary: Ambil daftar mata kuliah 🔒
+      parameters:
+        - name: jurusan
+          in: query
+          schema:
+            type: string
+        - name: semester_ke
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Daftar mata kuliah
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MataKuliah'
+
+  /simpan_mata_kuliah.php:
+    post:
+      tags: [Mata Kuliah]
+      summary: Tambah mata kuliah baru (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [kode_mk, nama_mk, sks, jurusan, semester_ke]
+              properties:
+                kode_mk:
+                  type: string
+                nama_mk:
+                  type: string
+                sks:
+                  type: integer
+                jurusan:
+                  type: string
+                semester_ke:
+                  type: integer
+                deskripsi:
+                  type: string
+      responses:
+        '200':
+          description: Mata kuliah berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /update_mata_kuliah.php:
+    post:
+      tags: [Mata Kuliah]
+      summary: Update mata kuliah (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, kode_mk, nama_mk, sks, jurusan, semester_ke]
+              properties:
+                id:
+                  type: string
+                kode_mk:
+                  type: string
+                nama_mk:
+                  type: string
+                sks:
+                  type: integer
+                jurusan:
+                  type: string
+                semester_ke:
+                  type: integer
+                deskripsi:
+                  type: string
+      responses:
+        '200':
+          description: Mata kuliah berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /delete_mata_kuliah.php:
+    post:
+      tags: [Mata Kuliah]
+      summary: Hapus mata kuliah (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Mata kuliah berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # RUANG
+  # ============================================================
+  /get_ruang.php:
+    get:
+      tags: [Ruang]
+      summary: Ambil daftar ruang 🔒
+      responses:
+        '200':
+          description: Daftar ruang
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ruang'
+
+  /simpan_ruang.php:
+    post:
+      tags: [Ruang]
+      summary: Tambah ruang baru (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nama_ruang]
+              properties:
+                nama_ruang:
+                  type: string
+                gedung:
+                  type: string
+                kapasitas:
+                  type: integer
+      responses:
+        '200':
+          description: Ruang berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /update_ruang.php:
+    post:
+      tags: [Ruang]
+      summary: Update ruang (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, nama_ruang]
+              properties:
+                id:
+                  type: string
+                nama_ruang:
+                  type: string
+                gedung:
+                  type: string
+                kapasitas:
+                  type: integer
+      responses:
+        '200':
+          description: Ruang berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /delete_ruang.php:
+    post:
+      tags: [Ruang]
+      summary: Hapus ruang (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Ruang berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # TAHUN AJARAN
+  # ============================================================
+  /get_tahun_ajaran.php:
+    get:
+      tags: [Tahun Ajaran]
+      summary: Ambil daftar tahun ajaran 🔒
+      responses:
+        '200':
+          description: Daftar tahun ajaran
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/TahunAjaran'
+
+  /simpan_tahun_ajaran.php:
+    post:
+      tags: [Tahun Ajaran]
+      summary: Tambah tahun ajaran baru (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nama, semester]
+              properties:
+                nama:
+                  type: string
+                  example: "2025/2026"
+                semester:
+                  type: string
+                  enum: [Ganjil, Genap]
+      responses:
+        '200':
+          description: Tahun ajaran berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /set_tahun_ajaran_aktif.php:
+    post:
+      tags: [Tahun Ajaran]
+      summary: Set 1 tahun ajaran jadi aktif, otomatis nonaktifkan yang lain (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Tahun ajaran aktif berhasil diubah
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # KELAS (ROMBEL)
+  # ============================================================
+  /get_kelas.php:
+    get:
+      tags: [Kelas]
+      summary: Ambil daftar kelas/rombel 🔒
+      parameters:
+        - name: tahun_ajaran_id
+          in: query
+          schema:
+            type: string
+        - name: mata_kuliah_id
+          in: query
+          schema:
+            type: string
+        - name: dosen_id
+          in: query
+          schema:
+            type: string
+          description: filter kelas yang diampu dosen tertentu
+      responses:
+        '200':
+          description: Daftar kelas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Kelas'
+
+  /simpan_kelas.php:
+    post:
+      tags: [Kelas]
+      summary: Buka kelas baru untuk mata kuliah tertentu (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [mata_kuliah_id, tahun_ajaran_id, dosen_id, nama_kelas]
+              properties:
+                mata_kuliah_id:
+                  type: string
+                tahun_ajaran_id:
+                  type: string
+                dosen_id:
+                  type: string
+                nama_kelas:
+                  type: string
+                  example: "A"
+                kapasitas:
+                  type: integer
+      responses:
+        '200':
+          description: Kelas berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /update_kelas.php:
+    post:
+      tags: [Kelas]
+      summary: Update kelas (ganti dosen/kapasitas) (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+                dosen_id:
+                  type: string
+                nama_kelas:
+                  type: string
+                kapasitas:
+                  type: integer
+      responses:
+        '200':
+          description: Kelas berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /delete_kelas.php:
+    post:
+      tags: [Kelas]
+      summary: Hapus kelas (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Kelas berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # JADWAL
+  # ============================================================
+  /get_jadwal.php:
+    get:
+      tags: [Jadwal]
+      summary: Ambil jadwal (mahasiswa= dari KRS disetujui, dosen= kelas diampu, admin= semua) 🔒
+      parameters:
+        - name: hari
+          in: query
+          schema:
+            type: string
+            enum: [Senin, Selasa, Rabu, Kamis, Jumat, Sabtu]
+      responses:
+        '200':
+          description: Daftar jadwal
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Jadwal'
+
+  /simpan_jadwal.php:
+    post:
+      tags: [Jadwal]
+      summary: Tambah jadwal untuk sebuah kelas (admin) 🔒
+      description: >
+        Backend WAJIB cek bentrok ruang & dosen (kombinasi hari+jam+ruang_id
+        dan hari+jam+dosen_id tidak boleh overlap) sebelum insert.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [kelas_id, ruang_id, hari, jam_mulai, jam_selesai]
+              properties:
+                kelas_id:
+                  type: string
+                ruang_id:
+                  type: string
+                hari:
+                  type: string
+                  enum: [Senin, Selasa, Rabu, Kamis, Jumat, Sabtu]
+                jam_mulai:
+                  type: string
+                  example: "08:00"
+                jam_selesai:
+                  type: string
+                  example: "09:40"
+      responses:
+        '200':
+          description: Jadwal berhasil ditambahkan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+        '409':
+          description: Bentrok jadwal (ruang atau dosen sudah terpakai di slot yang sama)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+  /update_jadwal.php:
+    post:
+      tags: [Jadwal]
+      summary: Update jadwal (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+                ruang_id:
+                  type: string
+                hari:
+                  type: string
+                  enum: [Senin, Selasa, Rabu, Kamis, Jumat, Sabtu]
+                jam_mulai:
+                  type: string
+                jam_selesai:
+                  type: string
+      responses:
+        '200':
+          description: Jadwal berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+        '409':
+          description: Bentrok jadwal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+  /delete_jadwal.php:
+    post:
+      tags: [Jadwal]
+      summary: Hapus jadwal (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Jadwal berhasil dihapus
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # KRS
+  # ============================================================
+  /get_kelas_tersedia.php:
+    get:
+      tags: [KRS]
+      summary: Ambil daftar kelas yang bisa diambil mahasiswa di tahun ajaran aktif 🔒
+      responses:
+        '200':
+          description: Daftar kelas tersedia untuk KRS
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Kelas'
+
+  /get_krs.php:
+    get:
+      tags: [KRS]
+      summary: Ambil KRS (mahasiswa= milik sendiri, admin= filter status) 🔒
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [menunggu, disetujui, ditolak]
+      responses:
+        '200':
+          description: Daftar/detail KRS
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        oneOf:
+                          - type: array
+                            items:
+                              $ref: '#/components/schemas/Krs'
+                          - $ref: '#/components/schemas/Krs'
+
+  /ajukan_krs.php:
+    post:
+      tags: [KRS]
+      summary: Mahasiswa mengajukan KRS untuk tahun ajaran aktif 🔒
+      description: >
+        Mengirim seluruh daftar kelas_id yang dipilih sekaligus (1 pengajuan).
+        Backend membuat 1 baris krs (status=menunggu) + baris krs_detail per
+        kelas_id. Validasi: mahasiswa belum punya KRS di tahun ajaran ini,
+        total SKS tidak melebihi batas maksimal, kelas tidak bentrok jadwal
+        satu sama lain, kapasitas kelas belum penuh.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kelas_ids]
+              properties:
+                kelas_ids:
+                  type: array
+                  items:
+                    type: string
+                  example: ["3", "7", "12"]
+      responses:
+        '200':
+          description: KRS berhasil diajukan, menunggu persetujuan admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+        '409':
+          description: Bentrok jadwal / SKS melebihi batas / kelas penuh / sudah pernah mengajukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+
+  /approve_krs.php:
+    post:
+      tags: [KRS]
+      summary: Admin menyetujui/menolak pengajuan KRS (admin) 🔒
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [krs_id, status]
+              properties:
+                krs_id:
+                  type: string
+                status:
+                  type: string
+                  enum: [disetujui, ditolak]
+                catatan_admin:
+                  type: string
+      responses:
+        '200':
+          description: Status KRS berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  # ============================================================
+  # NILAI
+  # ============================================================
+  /get_nilai.php:
+    get:
+      tags: [Nilai]
+      summary: Ambil nilai (dosen= per kelas diampu, mahasiswa= milik sendiri, admin= semua/filter) 🔒
+      parameters:
+        - name: kelas_id
+          in: query
+          schema:
+            type: string
+        - name: tahun_ajaran_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Daftar nilai
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Nilai'
+
+  /simpan_nilai.php:
+    post:
+      tags: [Nilai]
+      summary: Dosen input/update nilai mahasiswa untuk 1 kelas 🔒
+      description: >
+        Backend menghitung nilai_angka = tugas*0.3 + uts*0.3 + uas*0.4,
+        lalu menentukan nilai_huruf & bobot berdasarkan skala nilai_angka
+        (bukan dikirim dari client). Boleh kirim banyak mahasiswa sekaligus
+        (bulk save per kelas).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kelas_id, nilai]
+              properties:
+                kelas_id:
+                  type: string
+                nilai:
+                  type: array
+                  items:
+                    type: object
+                    required: [mahasiswa_id, tugas, uts, uas]
+                    properties:
+                      mahasiswa_id:
+                        type: string
+                      tugas:
+                        type: number
+                      uts:
+                        type: number
+                      uas:
+                        type: number
+      responses:
+        '200':
+          description: Nilai berhasil disimpan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOk'
+
+  /get_khs.php:
+    get:
+      tags: [Nilai]
+      summary: Ambil KHS mahasiswa per semester + IPK kumulatif 🔒
+      parameters:
+        - name: tahun_ajaran_id
+          in: query
+          schema:
+            type: string
+          description: kosongkan untuk tahun ajaran aktif
+      responses:
+        '200':
+          description: Data KHS
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponseOk'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Khs'

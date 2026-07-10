@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'theme/app_theme.dart';
+import 'pages/login_page.dart';
+
+// ============================================================
+// main.dart — Entry point Portal Akademik Mahasiswa
+// ============================================================
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Paksa orientasi portrait (opsional — hapus jika ingin landscape)
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+
+  // Status bar transparan agar menyatu dengan AppBar biru
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+
+  runApp(const PortalAkademikApp());
+}
+
+class PortalAkademikApp extends StatelessWidget {
+  const PortalAkademikApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Portal Akademik Mahasiswa',
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(),
+      home: const LoginPage(),
+    );
+  }
+}
