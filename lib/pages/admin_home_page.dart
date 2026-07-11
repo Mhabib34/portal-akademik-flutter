@@ -6,6 +6,8 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../widgets/soft_bottom_nav.dart';
 import 'login_page.dart';
+import 'data_dosen_page.dart';
+import 'data_mahasiswa_page.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -313,48 +315,62 @@ class _AdminHomePageState extends State<AdminHomePage> {
         'Data Mahasiswa',
         const Color(0xFFDCEBFF),
         const Color(0xFF2E6FE0),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataMahasiswaPage()),
+        ),
       ),
       _MenuData(
         Icons.person_2_rounded,
         'Data Dosen',
         const Color(0xFFEEE3FF),
         const Color(0xFF8B5CF6),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataDosenPage()),
+        ),
       ),
       _MenuData(
         Icons.menu_book_rounded,
         'Data Mata Kuliah',
         const Color(0xFFFFE8CC),
         const Color(0xFFE08A00),
+        onTap: () => _handlePlaceholder('Data Mata Kuliah'),
       ),
       _MenuData(
         Icons.event_note_rounded,
         'Penjadwalan',
         const Color(0xFFD9F5E4),
         const Color(0xFF12A150),
+        onTap: () => _handlePlaceholder('Penjadwalan'),
       ),
       _MenuData(
         Icons.fact_check_rounded,
         'Persetujuan KRS',
         const Color(0xFFFFE0E0),
         const Color(0xFFE05252),
+        onTap: () => _handlePlaceholder('Persetujuan KRS'),
       ),
       _MenuData(
         Icons.star_rounded,
         'Nilai',
         const Color(0xFFFFF6D6),
         const Color(0xFFCBA400),
+        onTap: () => _handlePlaceholder('Nilai'),
       ),
       _MenuData(
         Icons.manage_accounts_rounded,
         'User',
         const Color(0xFFD9F5E4),
         const Color(0xFF12A150),
+        onTap: () => _handlePlaceholder('User'),
       ),
       _MenuData(
         Icons.more_horiz_rounded,
         'Lainnya',
         const Color(0xFFE9E9EF),
         const Color(0xFF6B7280),
+        onTap: () => _handlePlaceholder('Lainnya'),
       ),
     ];
 
@@ -365,11 +381,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
       mainAxisSpacing: 14,
       crossAxisSpacing: 14,
       childAspectRatio: 1.4,
-      children: menu
-          .map(
-            (m) => _MenuTile(data: m, onTap: () => _handlePlaceholder(m.label)),
-          )
-          .toList(),
+      children: menu.map((m) => _MenuTile(data: m, onTap: m.onTap)).toList(),
     );
   }
 }
@@ -459,7 +471,14 @@ class _MenuData {
   final String label;
   final Color iconBg;
   final Color iconColor;
-  const _MenuData(this.icon, this.label, this.iconBg, this.iconColor);
+  final VoidCallback onTap;
+  const _MenuData(
+    this.icon,
+    this.label,
+    this.iconBg,
+    this.iconColor, {
+    required this.onTap,
+  });
 }
 
 class _MenuTile extends StatelessWidget {
