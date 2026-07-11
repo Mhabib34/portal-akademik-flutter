@@ -8,6 +8,7 @@ import '../widgets/soft_bottom_nav.dart';
 import 'login_page.dart';
 import 'data_dosen_page.dart';
 import 'data_mahasiswa_page.dart';
+import 'manajemen_user_page.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -363,7 +364,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         'User',
         const Color(0xFFD9F5E4),
         const Color(0xFF12A150),
-        onTap: () => _handlePlaceholder('User'),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ManajemenUserPage()),
+        ),
       ),
       _MenuData(
         Icons.more_horiz_rounded,
