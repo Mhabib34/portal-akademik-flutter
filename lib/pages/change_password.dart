@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
-import 'home_page.dart';
+import 'home_router.dart';
 
 // ============================================================
 // change_password.dart
@@ -59,7 +59,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      _showSnackBar('Password berhasil diubah! Selamat datang.', isError: false);
+      _showSnackBar(
+        'Password berhasil diubah! Selamat datang.',
+        isError: false,
+      );
 
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
@@ -67,11 +70,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => HomePage(
+          builder: (_) => buildHomePageForRole(
+            role: widget.role,
             userId: widget.userId,
             nama: widget.nama,
             username: widget.username,
-            role: widget.role,
             nim: widget.nim,
           ),
         ),

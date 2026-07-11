@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/api_client.dart';
 import 'change_password.dart';
-import 'home_page.dart';
+import 'home_router.dart';
 
 // ============================================================
 // login_page.dart — Halaman Login Portal Akademik
@@ -65,11 +65,11 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => HomePage(
+            builder: (_) => buildHomePageForRole(
+              role: session.role,
               userId: session.id,
               nama: session.nama,
               username: session.username,
-              role: session.role,
               nim: session.nim,
             ),
           ),
@@ -82,7 +82,10 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _showSnackBar('Tidak dapat terhubung ke server. Periksa koneksi Anda.', isError: true);
+      _showSnackBar(
+        'Tidak dapat terhubung ke server. Periksa koneksi Anda.',
+        isError: true,
+      );
     }
   }
 
@@ -90,7 +93,9 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: isError ? const Color(0xFFE05252) : const Color(0xFF3BAA6B),
+        backgroundColor: isError
+            ? const Color(0xFFE05252)
+            : const Color(0xFF3BAA6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -230,8 +235,9 @@ class _LoginPageState extends State<LoginPage> {
               ),
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Username wajib diisi' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Username wajib diisi'
+                  : null,
             ),
             const SizedBox(height: 18),
 
@@ -280,8 +286,9 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _login(),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Password wajib diisi' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Password wajib diisi'
+                  : null,
             ),
             const SizedBox(height: 24),
 
