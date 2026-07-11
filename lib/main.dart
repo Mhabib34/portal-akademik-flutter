@@ -11,14 +11,12 @@ import 'pages/login_page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Paksa orientasi portrait (opsional — hapus jika ingin landscape)
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Status bar transparan agar menyatu dengan AppBar biru
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
