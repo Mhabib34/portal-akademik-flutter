@@ -1,9 +1,8 @@
 -- ============================================================
--- PORTAL AKADEMIK MAHASISWA — init.sql (v4)
--- Mencakup: users, auth_tokens, mahasiswa, dosen, tahun_ajaran,
+-- PORTAL AKADEMIK MAHASISWA — init.sql (v5)
+-- Mencakup: users, auth_tokens, fakultas, prodi, mahasiswa, dosen, tahun_ajaran,
 --           mata_kuliah, ruang, kelas, jadwal, krs, krs_detail, nilai
--- v4: struktur nilai diubah jadi 5 komponen (Tugas, Quiz 1, Quiz 2,
---     UTS, Kehadiran, UAS)
+-- v5: penambahan tabel fakultas dan prodi
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS portal_mahasiswa
@@ -28,10 +27,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- ------------------------------------------------------------
 -- Tabel auth_tokens
---   Menyimpan token login (menggantikan pengiriman user_id/role
---   polos dari client). 1 user bisa punya lebih dari 1 token aktif
---   (login dari beberapa device) — kalau mau 1 device saja, tinggal
---   hapus token lama saat login baru di logic PHP-nya.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS auth_tokens (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,24 +42,48 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
+-- Tabel fakultas
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS fakultas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nama_fakultas VARCHAR(255) NOT NULL
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
+-- Tabel prodi
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS prodi (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  fakultas_id INT NOT NULL,
+  nama_prodi VARCHAR(255) NOT NULL,
+  CONSTRAINT fk_prodi_fakultas
+    FOREIGN KEY (fakultas_id) REFERENCES fakultas(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
 -- Tabel mahasiswa
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS mahasiswa (
   id       INT AUTO_INCREMENT PRIMARY KEY,
   nim      VARCHAR(20)  NOT NULL UNIQUE,
   nama     VARCHAR(100) NOT NULL,
-  jurusan  VARCHAR(100) NOT NULL,
+  prodi_id INT          NOT NULL,
   alamat   TEXT,
   user_id  INT          NOT NULL UNIQUE,
   CONSTRAINT fk_mahasiswa_user
     FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_mahasiswa_prodi
+    FOREIGN KEY (prodi_id) REFERENCES prodi(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
 -- Tabel dosen
---   username & password akun dosen = NIDN (mengikuti pola mahasiswa)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS dosen (
   id       INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,28 +99,30 @@ CREATE TABLE IF NOT EXISTS dosen (
 
 -- ------------------------------------------------------------
 -- Tabel tahun_ajaran
---   is_aktif menandai periode yang sedang berjalan (dipakai
---   sebagai default filter di app: hanya 1 baris boleh aktif)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tahun_ajaran (
   id        INT AUTO_INCREMENT PRIMARY KEY,
-  nama      VARCHAR(20)  NOT NULL,          -- contoh: '2025/2026'
+  nama      VARCHAR(20)  NOT NULL,
   semester  ENUM('Ganjil','Genap') NOT NULL,
   is_aktif  TINYINT(1)   NOT NULL DEFAULT 0,
   UNIQUE KEY uq_tahun_semester (nama, semester)
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
--- Tabel mata_kuliah (data master mata kuliah, belum terikat dosen/jadwal)
+-- Tabel mata_kuliah
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS mata_kuliah (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   kode_mk      VARCHAR(15)  NOT NULL UNIQUE,
   nama_mk      VARCHAR(150) NOT NULL,
   sks          TINYINT      NOT NULL,
-  jurusan      VARCHAR(100) NOT NULL,
-  semester_ke  TINYINT      NOT NULL,       -- semester ke berapa di kurikulum (1-8)
-  deskripsi    TEXT
+  prodi_id     INT          NOT NULL,
+  semester_ke  TINYINT      NOT NULL,
+  deskripsi    TEXT,
+  CONSTRAINT fk_matakuliah_prodi
+    FOREIGN KEY (prodi_id) REFERENCES prodi(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
@@ -109,22 +130,20 @@ CREATE TABLE IF NOT EXISTS mata_kuliah (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS ruang (
   id          INT AUTO_INCREMENT PRIMARY KEY,
-  nama_ruang  VARCHAR(50) NOT NULL UNIQUE,   -- contoh: 'R.301'
+  nama_ruang  VARCHAR(50) NOT NULL UNIQUE,
   gedung      VARCHAR(50),
   kapasitas   INT NOT NULL DEFAULT 40
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
 -- Tabel kelas (rombel)
---   Satu mata_kuliah bisa punya beberapa kelas paralel (A, B, ...)
---   per tahun_ajaran, masing-masing diampu 1 dosen.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS kelas (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   mata_kuliah_id  INT NOT NULL,
   tahun_ajaran_id INT NOT NULL,
   dosen_id        INT NOT NULL,
-  nama_kelas      VARCHAR(5) NOT NULL DEFAULT 'A',   -- 'A', 'B', dst
+  nama_kelas      VARCHAR(5) NOT NULL DEFAULT 'A',
   kapasitas       INT NOT NULL DEFAULT 40,
   CONSTRAINT fk_kelas_mk
     FOREIGN KEY (mata_kuliah_id) REFERENCES mata_kuliah(id)
@@ -140,8 +159,6 @@ CREATE TABLE IF NOT EXISTS kelas (
 
 -- ------------------------------------------------------------
 -- Tabel jadwal
---   1 kelas bisa punya lebih dari 1 sesi/minggu (mis. teori + praktikum),
---   makanya jadwal dipisah dari kelas (1-to-many).
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS jadwal (
   id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,8 +176,7 @@ CREATE TABLE IF NOT EXISTS jadwal (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
--- Tabel krs (header pengajuan per mahasiswa per tahun_ajaran)
---   Approve/reject dilakukan untuk keseluruhan pengajuan sekaligus.
+-- Tabel krs
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS krs (
   id               INT AUTO_INCREMENT PRIMARY KEY,
@@ -180,7 +196,7 @@ CREATE TABLE IF NOT EXISTS krs (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
--- Tabel krs_detail (daftar kelas yang diambil dalam 1 pengajuan KRS)
+-- Tabel krs_detail
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS krs_detail (
   id       INT AUTO_INCREMENT PRIMARY KEY,
@@ -197,33 +213,20 @@ CREATE TABLE IF NOT EXISTS krs_detail (
 
 -- ------------------------------------------------------------
 -- Tabel nilai
---   1 baris = nilai 1 mahasiswa di 1 kelas (mata kuliah tertentu,
---   tahun ajaran tertentu — sudah tersirat lewat kelas_id).
---   Bobot tetap (dihitung di aplikasi/PHP saat simpan, bukan
---   generated column, supaya mudah dijelaskan & tidak terikat
---   versi MySQL tertentu):
---     Tugas       20%
---     Quiz 1       5%  (sebelum UTS)
---     Quiz 2       5%  (sebelum UAS)
---     UTS         25%
---     Kehadiran   10%
---     UAS         35%
---     --------------
---     Total      100%
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nilai (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   mahasiswa_id INT NOT NULL,
   kelas_id     INT NOT NULL,
   tugas        DECIMAL(5,2) NOT NULL DEFAULT 0,
-  quiz_1       DECIMAL(5,2) NOT NULL DEFAULT 0,   -- quiz sebelum UTS
-  quiz_2       DECIMAL(5,2) NOT NULL DEFAULT 0,   -- quiz sebelum UAS
+  quiz_1       DECIMAL(5,2) NOT NULL DEFAULT 0,
+  quiz_2       DECIMAL(5,2) NOT NULL DEFAULT 0,
   uts          DECIMAL(5,2) NOT NULL DEFAULT 0,
-  kehadiran    DECIMAL(5,2) NOT NULL DEFAULT 0,   -- persentase/skor kehadiran 0-100
+  kehadiran    DECIMAL(5,2) NOT NULL DEFAULT 0,
   uas          DECIMAL(5,2) NOT NULL DEFAULT 0,
-  nilai_angka  DECIMAL(5,2) NOT NULL DEFAULT 0,   -- = tugas*0.20 + quiz_1*0.05 + quiz_2*0.05 + uts*0.25 + kehadiran*0.10 + uas*0.35
-  nilai_huruf  VARCHAR(2)   NOT NULL DEFAULT '-', -- A/B/C/D/E
-  bobot        DECIMAL(3,2) NOT NULL DEFAULT 0,   -- untuk hitung IPK: A=4,B=3,C=2,D=1,E=0
+  nilai_angka  DECIMAL(5,2) NOT NULL DEFAULT 0,
+  nilai_huruf  VARCHAR(2)   NOT NULL DEFAULT '-',
+  bobot        DECIMAL(3,2) NOT NULL DEFAULT 0,
   updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_nilai_mahasiswa
     FOREIGN KEY (mahasiswa_id) REFERENCES mahasiswa(id)
@@ -245,3 +248,9 @@ VALUES ('Administrator', 'admin', 'admin123', 'admin', 0, 1);
 -- ------------------------------------------------------------
 INSERT INTO tahun_ajaran (nama, semester, is_aktif)
 VALUES ('2025/2026', 'Ganjil', 1);
+
+-- ------------------------------------------------------------
+-- Seed: Fakultas dan Prodi contoh
+-- ------------------------------------------------------------
+INSERT INTO fakultas (nama_fakultas) VALUES ('Fakultas Ilmu Komputer');
+INSERT INTO prodi (fakultas_id, nama_prodi) VALUES (1, 'Teknik Informatika'), (1, 'Sistem Informasi');

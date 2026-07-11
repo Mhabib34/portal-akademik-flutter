@@ -107,7 +107,7 @@ components:
           type: string
         nama:
           type: string
-        jurusan:
+        prodi_id:
           type: string
         alamat:
           type: string
@@ -149,7 +149,11 @@ components:
           type: string
         sks:
           type: integer
-        jurusan:
+        prodi_id:
+          type: string
+        nama_prodi:
+          type: string
+        nama_fakultas:
           type: string
         semester_ke:
           type: integer
@@ -515,13 +519,13 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required: [nim, nama, jurusan]
+              required: [nim, nama, prodi_id]
               properties:
                 nim:
                   type: string
                 nama:
                   type: string
-                jurusan:
+                prodi_id:
                   type: string
                 alamat:
                   type: string
@@ -543,7 +547,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required: [id, nim, nama, jurusan]
+              required: [id, nim, nama, prodi_id]
               properties:
                 id:
                   type: string
@@ -551,7 +555,7 @@ paths:
                   type: string
                 nama:
                   type: string
-                jurusan:
+                prodi_id:
                   type: string
                 alamat:
                   type: string
@@ -693,7 +697,7 @@ paths:
       tags: [Mata Kuliah]
       summary: Ambil daftar mata kuliah 🔒
       parameters:
-        - name: jurusan
+        - name: prodi_id
           in: query
           schema:
             type: string
@@ -726,7 +730,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required: [kode_mk, nama_mk, sks, jurusan, semester_ke]
+              required: [kode_mk, nama_mk, sks, prodi_id, semester_ke]
               properties:
                 kode_mk:
                   type: string
@@ -734,7 +738,7 @@ paths:
                   type: string
                 sks:
                   type: integer
-                jurusan:
+                prodi_id:
                   type: string
                 semester_ke:
                   type: integer
@@ -758,7 +762,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required: [id, kode_mk, nama_mk, sks, jurusan, semester_ke]
+              required: [id, kode_mk, nama_mk, sks, prodi_id, semester_ke]
               properties:
                 id:
                   type: string
@@ -768,7 +772,7 @@ paths:
                   type: string
                 sks:
                   type: integer
-                jurusan:
+                prodi_id:
                   type: string
                 semester_ke:
                   type: integer
@@ -1425,3 +1429,142 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/Khs'
+  /get_fakultas.php:
+    get:
+      tags:
+        - Fakultas
+      summary: Ambil daftar fakultas
+      responses:
+        '200':
+          description: Sukses
+  /simpan_fakultas.php:
+    post:
+      tags:
+        - Fakultas
+      summary: Simpan fakultas baru (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nama_fakultas]
+              properties:
+                nama_fakultas:
+                  type: string
+      responses:
+        '200':
+          description: Sukses
+  /update_fakultas.php:
+    post:
+      tags:
+        - Fakultas
+      summary: Update fakultas (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, nama_fakultas]
+              properties:
+                id:
+                  type: integer
+                nama_fakultas:
+                  type: string
+      responses:
+        '200':
+          description: Sukses
+  /delete_fakultas.php:
+    post:
+      tags:
+        - Fakultas
+      summary: Hapus fakultas (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: integer
+      responses:
+        '200':
+          description: Sukses
+
+  /get_prodi.php:
+    get:
+      tags:
+        - Prodi
+      summary: Ambil daftar prodi
+      parameters:
+        - name: fakultas_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+  /simpan_prodi.php:
+    post:
+      tags:
+        - Prodi
+      summary: Simpan prodi baru (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [fakultas_id, nama_prodi]
+              properties:
+                fakultas_id:
+                  type: integer
+                nama_prodi:
+                  type: string
+      responses:
+        '200':
+          description: Sukses
+  /update_prodi.php:
+    post:
+      tags:
+        - Prodi
+      summary: Update prodi (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id, fakultas_id, nama_prodi]
+              properties:
+                id:
+                  type: integer
+                fakultas_id:
+                  type: integer
+                nama_prodi:
+                  type: string
+      responses:
+        '200':
+          description: Sukses
+  /delete_prodi.php:
+    post:
+      tags:
+        - Prodi
+      summary: Hapus prodi (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: integer
+      responses:
+        '200':
+          description: Sukses

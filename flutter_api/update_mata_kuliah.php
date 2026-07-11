@@ -19,11 +19,11 @@ $id         = trim($_POST['id']          ?? '');
 $kodeMk     = trim($_POST['kode_mk']     ?? '');
 $namaMk     = trim($_POST['nama_mk']     ?? '');
 $sks        = trim($_POST['sks']         ?? '');
-$jurusan    = trim($_POST['jurusan']     ?? '');
+$prodiId    = trim($_POST['prodi_id']    ?? '');
 $semesterKe = trim($_POST['semester_ke'] ?? '');
 $deskripsi  = trim($_POST['deskripsi']   ?? '');
 
-if (empty($id) || empty($kodeMk) || empty($namaMk) || empty($sks) || empty($jurusan) || empty($semesterKe)) {
+if (empty($id) || empty($kodeMk) || empty($namaMk) || empty($sks) || empty($prodiId) || empty($semesterKe)) {
     echo json_encode(['status' => 'error', 'message' => 'Semua field wajib diisi kecuali deskripsi']);
     exit();
 }
@@ -41,10 +41,10 @@ if ($cekDup->num_rows > 0) {
 $cekDup->close();
 
 $stmt = $conn->prepare(
-    "UPDATE mata_kuliah SET kode_mk = ?, nama_mk = ?, sks = ?, jurusan = ?, semester_ke = ?, deskripsi = ?
+    "UPDATE mata_kuliah SET kode_mk = ?, nama_mk = ?, sks = ?, prodi_id = ?, semester_ke = ?, deskripsi = ?
      WHERE id = ?"
 );
-$stmt->bind_param('ssisisi', $kodeMk, $namaMk, $sks, $jurusan, $semesterKe, $deskripsi, $id);
+$stmt->bind_param('ssiiisi', $kodeMk, $namaMk, $sks, $prodiId, $semesterKe, $deskripsi, $id);
 $stmt->execute();
 
 if ($stmt->affected_rows >= 0) {

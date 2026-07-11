@@ -17,11 +17,11 @@ requireRole($currentUser, ['admin']);
 
 $nim     = trim($_POST['nim']     ?? '');
 $nama    = trim($_POST['nama']    ?? '');
-$jurusan = trim($_POST['jurusan'] ?? '');
+$prodiId = trim($_POST['prodi_id'] ?? '');
 $alamat  = trim($_POST['alamat']  ?? '');
 
-if (empty($nim) || empty($nama) || empty($jurusan)) {
-    echo json_encode(['status' => 'error', 'message' => 'NIM, nama, dan jurusan wajib diisi']);
+if (empty($nim) || empty($nama) || empty($prodiId)) {
+    echo json_encode(['status' => 'error', 'message' => 'NIM, nama, dan prodi_id wajib diisi']);
     exit();
 }
 
@@ -62,10 +62,10 @@ try {
     $stmtUser->close();
 
     $stmtMhs = $conn->prepare(
-        "INSERT INTO mahasiswa (nim, nama, jurusan, alamat, user_id)
+        "INSERT INTO mahasiswa (nim, nama, prodi_id, alamat, user_id)
          VALUES (?, ?, ?, ?, ?)"
     );
-    $stmtMhs->bind_param('ssssi', $nim, $nama, $jurusan, $alamat, $userId);
+    $stmtMhs->bind_param('ssisi', $nim, $nama, $prodiId, $alamat, $userId);
     $stmtMhs->execute();
     $mahasiswaId = $conn->insert_id;
     $stmtMhs->close();

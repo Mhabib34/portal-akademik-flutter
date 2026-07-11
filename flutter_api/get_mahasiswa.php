@@ -1,7 +1,7 @@
 <?php
 // ============================================================
 // get_mahasiswa.php — Ambil data mahasiswa
-//   Admin  : semua data (JOIN ke users)
+//   Admin  : semua data (JOIN ke users, prodi, fakultas)
 //   Mahasiswa (role=user) : data sendiri saja
 //   Role/user_id diambil dari token, bukan query param lagi
 // ============================================================
@@ -18,10 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $currentUser = requireAuth($conn);
 
 if ($currentUser['role'] === 'admin') {
-    $sql = "SELECT m.id, m.nim, m.nama, m.jurusan, m.alamat,
+    $sql = "SELECT m.id, m.nim, m.nama, m.prodi_id, p.nama_prodi, f.nama_fakultas, m.alamat,
                    m.user_id, u.is_active, u.must_change_password
             FROM mahasiswa m
             JOIN users u ON u.id = m.user_id
+            LEFT JOIN prodi p ON p.id = m.prodi_id
+            LEFT JOIN fakultas f ON f.id = p.fakultas_id
             ORDER BY m.nama ASC";
 
     $result = $conn->query($sql);
@@ -38,7 +40,9 @@ if ($currentUser['role'] === 'admin') {
             'id'                    => (string)$row['id'],
             'nim'                   => $row['nim'],
             'nama'                  => $row['nama'],
-            'jurusan'               => $row['jurusan'],
+            'prodi_id'              => $row['prodi_id'] !== null ? (string)$row['prodi_id'] : null,
+            'nama_prodi'            => $row['nama_prodi'] ?? '',
+            'nama_fakultas'         => $row['nama_fakultas'] ?? '',
             'alamat'                => $row['alamat'] ?? '',
             'user_id'               => (string)$row['user_id'],
             'is_active'             => (int)$row['is_active'],
@@ -50,10 +54,12 @@ if ($currentUser['role'] === 'admin') {
 
 } elseif ($currentUser['role'] === 'user') {
     $stmt = $conn->prepare(
-        "SELECT m.id, m.nim, m.nama, m.jurusan, m.alamat,
+        "SELECT m.id, m.nim, m.nama, m.prodi_id, p.nama_prodi, f.nama_fakultas, m.alamat,
                 m.user_id, u.is_active, u.must_change_password
          FROM mahasiswa m
          JOIN users u ON u.id = m.user_id
+         LEFT JOIN prodi p ON p.id = m.prodi_id
+         LEFT JOIN fakultas f ON f.id = p.fakultas_id
          WHERE m.user_id = ?
          LIMIT 1"
     );
@@ -77,7 +83,9 @@ if ($currentUser['role'] === 'admin') {
             'id'                    => (string)$row['id'],
             'nim'                   => $row['nim'],
             'nama'                  => $row['nama'],
-            'jurusan'               => $row['jurusan'],
+            'prodi_id'              => $row['prodi_id'] !== null ? (string)$row['prodi_id'] : null,
+            'nama_prodi'            => $row['nama_prodi'] ?? '',
+            'nama_fakultas'         => $row['nama_fakultas'] ?? '',
             'alamat'                => $row['alamat'] ?? '',
             'user_id'               => (string)$row['user_id'],
             'is_active'             => (int)$row['is_active'],

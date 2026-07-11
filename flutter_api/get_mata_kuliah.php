@@ -2,7 +2,7 @@
 // ============================================================
 // get_mata_kuliah.php — Ambil daftar mata kuliah
 //   Bisa diakses semua role yang sudah login (admin/dosen/user)
-//   Filter opsional: jurusan, semester_ke
+//   Filter opsional: prodi_id, semester_ke
 // ============================================================
 
 require_once 'koneksi.php';
@@ -16,24 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 requireAuth($conn);
 
-$jurusan    = trim($_GET['jurusan']     ?? '');
+$prodiId    = trim($_GET['prodi_id']    ?? '');
 $semesterKe = trim($_GET['semester_ke'] ?? '');
 
-$sql = "SELECT id, kode_mk, nama_mk, sks, jurusan, semester_ke, deskripsi FROM mata_kuliah WHERE 1=1";
+$sql = "SELECT mk.id, mk.kode_mk, mk.nama_mk, mk.sks, mk.prodi_id, p.nama_prodi, f.nama_fakultas, mk.semester_ke, mk.deskripsi 
+        FROM mata_kuliah mk
+        LEFT JOIN prodi p ON p.id = mk.prodi_id
+        LEFT JOIN fakultas f ON f.id = p.fakultas_id
+        WHERE 1=1";
 $params = [];
 $types  = '';
 
-if (!empty($jurusan)) {
-    $sql .= " AND jurusan = ?";
-    $params[] = $jurusan;
-    $types   .= 's';
+if (!empty($prodiId)) {
+    $sql .= " AND mk.prodi_id = ?";
+    $params[] = $prodiId;
+    $types   .= 'i';
 }
 if (!empty($semesterKe)) {
-    $sql .= " AND semester_ke = ?";
+    $sql .= " AND mk.semester_ke = ?";
     $params[] = $semesterKe;
     $types   .= 'i';
 }
-$sql .= " ORDER BY semester_ke ASC, nama_mk ASC";
+$sql .= " ORDER BY mk.semester_ke ASC, mk.nama_mk ASC";
 
 $stmt = $conn->prepare($sql);
 if (!empty($params)) {
@@ -45,13 +49,15 @@ $result = $stmt->get_result();
 $data = [];
 while ($row = $result->fetch_assoc()) {
     $data[] = [
-        'id'          => (string)$row['id'],
-        'kode_mk'     => $row['kode_mk'],
-        'nama_mk'     => $row['nama_mk'],
-        'sks'         => (int)$row['sks'],
-        'jurusan'     => $row['jurusan'],
-        'semester_ke' => (int)$row['semester_ke'],
-        'deskripsi'   => $row['deskripsi'] ?? ''
+        'id'            => (string)$row['id'],
+        'kode_mk'       => $row['kode_mk'],
+        'nama_mk'       => $row['nama_mk'],
+        'sks'           => (int)$row['sks'],
+        'prodi_id'      => $row['prodi_id'] !== null ? (string)$row['prodi_id'] : null,
+        'nama_prodi'    => $row['nama_prodi'] ?? '',
+        'nama_fakultas' => $row['nama_fakultas'] ?? '',
+        'semester_ke'   => (int)$row['semester_ke'],
+        'deskripsi'     => $row['deskripsi'] ?? ''
     ];
 }
 

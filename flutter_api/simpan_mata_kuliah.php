@@ -18,12 +18,12 @@ requireRole($currentUser, ['admin']);
 $kodeMk     = trim($_POST['kode_mk']     ?? '');
 $namaMk     = trim($_POST['nama_mk']     ?? '');
 $sks        = trim($_POST['sks']         ?? '');
-$jurusan    = trim($_POST['jurusan']     ?? '');
+$prodiId    = trim($_POST['prodi_id']    ?? '');
 $semesterKe = trim($_POST['semester_ke'] ?? '');
 $deskripsi  = trim($_POST['deskripsi']   ?? '');
 
-if (empty($kodeMk) || empty($namaMk) || empty($sks) || empty($jurusan) || empty($semesterKe)) {
-    echo json_encode(['status' => 'error', 'message' => 'kode_mk, nama_mk, sks, jurusan, dan semester_ke wajib diisi']);
+if (empty($kodeMk) || empty($namaMk) || empty($sks) || empty($prodiId) || empty($semesterKe)) {
+    echo json_encode(['status' => 'error', 'message' => 'kode_mk, nama_mk, sks, prodi_id, dan semester_ke wajib diisi']);
     exit();
 }
 
@@ -40,10 +40,10 @@ if ($cek->num_rows > 0) {
 $cek->close();
 
 $stmt = $conn->prepare(
-    "INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, jurusan, semester_ke, deskripsi)
+    "INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, prodi_id, semester_ke, deskripsi)
      VALUES (?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssisis', $kodeMk, $namaMk, $sks, $jurusan, $semesterKe, $deskripsi);
+$stmt->bind_param('ssiiis', $kodeMk, $namaMk, $sks, $prodiId, $semesterKe, $deskripsi);
 $stmt->execute();
 
 if ($stmt->affected_rows > 0) {
