@@ -1,16 +1,21 @@
 <?php
 // ============================================================
-// reset_password.php — Admin reset password mahasiswa ke NIM
+// reset_password.php — Admin reset password mahasiswa/dosen
+//   Mahasiswa -> reset ke NIM, Dosen -> reset ke NIDN
 //   Set must_change_password = 1
 // ============================================================
 
 require_once 'koneksi.php';
+require_once 'auth_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Method tidak diizinkan']);
     exit();
 }
+
+$currentUser = requireAuth($conn);
+requireRole($currentUser, ['admin']);
 
 $userId = trim($_POST['user_id'] ?? '');
 
@@ -19,42 +24,50 @@ if (empty($userId)) {
     exit();
 }
 
-// Ambil NIM mahasiswa berdasarkan user_id
-$cek = $conn->prepare(
-    "SELECT m.nim FROM mahasiswa m WHERE m.user_id = ? LIMIT 1"
-);
-$cek->bind_param('i', $userId);
-$cek->execute();
-$result = $cek->get_result();
+// Cek dulu apakah target user itu mahasiswa
+$cekMhs = $conn->prepare("SELECT nim FROM mahasiswa WHERE user_id = ? LIMIT 1");
+$cekMhs->bind_param('i', $userId);
+$cekMhs->execute();
+$resMhs = $cekMhs->get_result();
 
-if ($result->num_rows === 0) {
-    echo json_encode(['status' => 'error', 'message' => 'Data mahasiswa tidak ditemukan untuk user_id ini']);
-    $cek->close();
+$passwordBaru = null;
+
+if ($resMhs->num_rows > 0) {
+    $passwordBaru = $resMhs->fetch_assoc()['nim'];
+}
+$cekMhs->close();
+
+// Kalau bukan mahasiswa, cek apakah dosen
+if ($passwordBaru === null) {
+    $cekDosen = $conn->prepare("SELECT nidn FROM dosen WHERE user_id = ? LIMIT 1");
+    $cekDosen->bind_param('i', $userId);
+    $cekDosen->execute();
+    $resDosen = $cekDosen->get_result();
+    if ($resDosen->num_rows > 0) {
+        $passwordBaru = $resDosen->fetch_assoc()['nidn'];
+    }
+    $cekDosen->close();
+}
+
+if ($passwordBaru === null) {
+    echo json_encode(['status' => 'error', 'message' => 'User ini bukan mahasiswa atau dosen, tidak bisa direset otomatis']);
     $conn->close();
     exit();
 }
 
-$row = $result->fetch_assoc();
-$nim = $row['nim'];
-$cek->close();
-
-// Reset password = NIM, must_change_password = 1
 $stmt = $conn->prepare(
     "UPDATE users SET password = ?, must_change_password = 1 WHERE id = ?"
 );
-$stmt->bind_param('si', $nim, $userId);
+$stmt->bind_param('si', $passwordBaru, $userId);
 $stmt->execute();
 
 if ($stmt->affected_rows >= 0) {
     echo json_encode([
         'status'  => 'ok',
-        'message' => 'Password berhasil direset ke NIM. Mahasiswa harus ganti password saat login berikutnya.'
+        'message' => 'Password berhasil direset. User harus ganti password saat login berikutnya.'
     ]);
 } else {
-    echo json_encode([
-        'status'  => 'error',
-        'message' => 'Gagal mereset password'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Gagal mereset password']);
 }
 
 $stmt->close();

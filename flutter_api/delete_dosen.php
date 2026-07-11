@@ -1,6 +1,8 @@
 <?php
 // ============================================================
-// delete_mahasiswa.php — Hapus mahasiswa + akun user (admin only)
+// delete_dosen.php — Hapus dosen + akun user (admin only)
+//   Ditolak kalau dosen masih mengampu kelas aktif, supaya data
+//   kelas/jadwal/nilai historis tidak yatim (orphan FK RESTRICT)
 // ============================================================
 
 require_once 'koneksi.php';
@@ -18,17 +20,17 @@ requireRole($currentUser, ['admin']);
 $id = trim($_POST['id'] ?? '');
 
 if (empty($id)) {
-    echo json_encode(['status' => 'error', 'message' => 'ID mahasiswa wajib diisi']);
+    echo json_encode(['status' => 'error', 'message' => 'ID dosen wajib diisi']);
     exit();
 }
 
-$cek = $conn->prepare("SELECT user_id FROM mahasiswa WHERE id = ? LIMIT 1");
+$cek = $conn->prepare("SELECT user_id FROM dosen WHERE id = ? LIMIT 1");
 $cek->bind_param('i', $id);
 $cek->execute();
 $result = $cek->get_result();
 
 if ($result->num_rows === 0) {
-    echo json_encode(['status' => 'error', 'message' => 'Data mahasiswa tidak ditemukan']);
+    echo json_encode(['status' => 'error', 'message' => 'Data dosen tidak ditemukan']);
     $cek->close();
     $conn->close();
     exit();
@@ -41,10 +43,14 @@ $cek->close();
 $conn->begin_transaction();
 
 try {
-    $stmtMhs = $conn->prepare("DELETE FROM mahasiswa WHERE id = ?");
-    $stmtMhs->bind_param('i', $id);
-    $stmtMhs->execute();
-    $stmtMhs->close();
+    $stmtDosen = $conn->prepare("DELETE FROM dosen WHERE id = ?");
+    $stmtDosen->bind_param('i', $id);
+    $stmtDosen->execute();
+
+    if ($stmtDosen->errno) {
+        throw new Exception('Dosen masih mengampu kelas aktif, tidak bisa dihapus');
+    }
+    $stmtDosen->close();
 
     $stmtUser = $conn->prepare("DELETE FROM users WHERE id = ?");
     $stmtUser->bind_param('i', $userId);
@@ -53,7 +59,7 @@ try {
 
     $conn->commit();
 
-    echo json_encode(['status' => 'ok', 'message' => 'Data mahasiswa dan akun berhasil dihapus']);
+    echo json_encode(['status' => 'ok', 'message' => 'Data dosen dan akun berhasil dihapus']);
 
 } catch (Exception $e) {
     $conn->rollback();

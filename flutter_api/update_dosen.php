@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// update_mahasiswa.php — Update data mahasiswa (admin only)
+// update_dosen.php — Update data dosen (admin only)
 // ============================================================
 
 require_once 'koneksi.php';
@@ -15,67 +15,66 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $currentUser = requireAuth($conn);
 requireRole($currentUser, ['admin']);
 
-$id      = trim($_POST['id']      ?? '');
-$nim     = trim($_POST['nim']     ?? '');
-$nama    = trim($_POST['nama']    ?? '');
-$jurusan = trim($_POST['jurusan'] ?? '');
-$alamat  = trim($_POST['alamat']  ?? '');
+$id    = trim($_POST['id']    ?? '');
+$nidn  = trim($_POST['nidn']  ?? '');
+$nama  = trim($_POST['nama']  ?? '');
+$noHp  = trim($_POST['no_hp'] ?? '');
 
-if (empty($id) || empty($nim) || empty($nama) || empty($jurusan)) {
-    echo json_encode(['status' => 'error', 'message' => 'ID, NIM, nama, dan jurusan wajib diisi']);
+if (empty($id) || empty($nidn) || empty($nama)) {
+    echo json_encode(['status' => 'error', 'message' => 'ID, NIDN, dan nama wajib diisi']);
     exit();
 }
 
-$cek = $conn->prepare("SELECT user_id, nim FROM mahasiswa WHERE id = ? LIMIT 1");
+$cek = $conn->prepare("SELECT user_id, nidn FROM dosen WHERE id = ? LIMIT 1");
 $cek->bind_param('i', $id);
 $cek->execute();
 $result = $cek->get_result();
 if ($result->num_rows === 0) {
-    echo json_encode(['status' => 'error', 'message' => 'Data mahasiswa tidak ditemukan']);
+    echo json_encode(['status' => 'error', 'message' => 'Data dosen tidak ditemukan']);
     $cek->close();
     $conn->close();
     exit();
 }
 $existing = $result->fetch_assoc();
 $userId   = $existing['user_id'];
-$nimLama  = $existing['nim'];
+$nidnLama = $existing['nidn'];
 $cek->close();
 
-$cekNim = $conn->prepare("SELECT id FROM mahasiswa WHERE nim = ? AND id != ? LIMIT 1");
-$cekNim->bind_param('si', $nim, $id);
-$cekNim->execute();
-$cekNim->store_result();
-if ($cekNim->num_rows > 0) {
-    echo json_encode(['status' => 'error', 'message' => 'NIM sudah digunakan mahasiswa lain']);
-    $cekNim->close();
+$cekNidn = $conn->prepare("SELECT id FROM dosen WHERE nidn = ? AND id != ? LIMIT 1");
+$cekNidn->bind_param('si', $nidn, $id);
+$cekNidn->execute();
+$cekNidn->store_result();
+if ($cekNidn->num_rows > 0) {
+    echo json_encode(['status' => 'error', 'message' => 'NIDN sudah digunakan dosen lain']);
+    $cekNidn->close();
     $conn->close();
     exit();
 }
-$cekNim->close();
+$cekNidn->close();
 
 $conn->begin_transaction();
 
 try {
-    $stmtMhs = $conn->prepare(
-        "UPDATE mahasiswa SET nim = ?, nama = ?, jurusan = ?, alamat = ? WHERE id = ?"
+    $stmtDosen = $conn->prepare(
+        "UPDATE dosen SET nidn = ?, nama = ?, no_hp = ? WHERE id = ?"
     );
-    $stmtMhs->bind_param('ssssi', $nim, $nama, $jurusan, $alamat, $id);
-    $stmtMhs->execute();
-    $stmtMhs->close();
+    $stmtDosen->bind_param('sssi', $nidn, $nama, $noHp, $id);
+    $stmtDosen->execute();
+    $stmtDosen->close();
 
     $stmtUser = $conn->prepare("UPDATE users SET nama = ? WHERE id = ?");
     $stmtUser->bind_param('si', $nama, $userId);
     $stmtUser->execute();
     $stmtUser->close();
 
-    if ($nim !== $nimLama) {
+    if ($nidn !== $nidnLama) {
         $cekUsr = $conn->prepare("SELECT id FROM users WHERE username = ? AND id != ? LIMIT 1");
-        $cekUsr->bind_param('si', $nim, $userId);
+        $cekUsr->bind_param('si', $nidn, $userId);
         $cekUsr->execute();
         $cekUsr->store_result();
         if ($cekUsr->num_rows > 0) {
             $conn->rollback();
-            echo json_encode(['status' => 'error', 'message' => 'Username baru (NIM baru) sudah digunakan']);
+            echo json_encode(['status' => 'error', 'message' => 'Username baru (NIDN baru) sudah digunakan']);
             $cekUsr->close();
             $conn->close();
             exit();
@@ -83,14 +82,14 @@ try {
         $cekUsr->close();
 
         $stmtUname = $conn->prepare("UPDATE users SET username = ? WHERE id = ?");
-        $stmtUname->bind_param('si', $nim, $userId);
+        $stmtUname->bind_param('si', $nidn, $userId);
         $stmtUname->execute();
         $stmtUname->close();
     }
 
     $conn->commit();
 
-    echo json_encode(['status' => 'ok', 'message' => 'Data mahasiswa berhasil diperbarui']);
+    echo json_encode(['status' => 'ok', 'message' => 'Data dosen berhasil diperbarui']);
 
 } catch (Exception $e) {
     $conn->rollback();

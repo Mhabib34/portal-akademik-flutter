@@ -1,9 +1,11 @@
 <?php
 // ============================================================
-// login.php — Autentikasi user (admin & mahasiswa)
+// login.php — Autentikasi user (admin, dosen, mahasiswa)
+//   Sekarang generate & simpan token di auth_tokens
 // ============================================================
 
 require_once 'koneksi.php';
+require_once 'auth_helper.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -14,19 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $username = trim($_POST['username'] ?? '');
 $password = trim($_POST['password'] ?? '');
 
-// Validasi input
 if (empty($username) || empty($password)) {
     echo json_encode(['status' => 'error', 'message' => 'Username dan password wajib diisi']);
     exit();
 }
 
-// Cari user berdasarkan username
+// Cari user + info mahasiswa/dosen sekaligus
 $stmt = $conn->prepare(
     "SELECT u.id, u.nama, u.username, u.password, u.role,
             u.must_change_password, u.is_active,
-            m.nim
+            m.nim, d.nidn
      FROM users u
      LEFT JOIN mahasiswa m ON m.user_id = u.id
+     LEFT JOIN dosen d ON d.user_id = u.id
      WHERE u.username = ?
      LIMIT 1"
 );
@@ -44,31 +46,44 @@ if ($result->num_rows === 0) {
 $user = $result->fetch_assoc();
 $stmt->close();
 
-// Cek password (plain text sesuai spesifikasi)
 if ($user['password'] !== $password) {
     echo json_encode(['status' => 'error', 'message' => 'Username atau password salah']);
     $conn->close();
     exit();
 }
 
-// Cek status akun
 if ((int)$user['is_active'] === 0) {
     echo json_encode(['status' => 'error', 'message' => 'Akun Anda dinonaktifkan. Hubungi administrator.']);
     $conn->close();
     exit();
 }
 
-// Berhasil login
+// --- Generate token, berlaku 7 hari ---
+$token     = generateToken();
+$expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+
+$stmtToken = $conn->prepare(
+    "INSERT INTO auth_tokens (user_id, token, expires_at) VALUES (?, ?, ?)"
+);
+$stmtToken->bind_param('iss', $user['id'], $token, $expiresAt);
+$stmtToken->execute();
+$stmtToken->close();
+
 echo json_encode([
-    'status'               => 'ok',
-    'message'              => 'Login berhasil',
-    'id'                   => (string)$user['id'],
-    'nama'                 => $user['nama'],
-    'username'             => $user['username'],
-    'role'                 => $user['role'],
-    'nim'                  => $user['nim'] ?? '',
-    'must_change_password' => (int)$user['must_change_password'],
-    'is_active'            => (int)$user['is_active']
+    'status'  => 'ok',
+    'message' => 'Login berhasil',
+    'data'    => [
+        'token'                 => $token,
+        'expires_at'            => $expiresAt,
+        'id'                    => (string)$user['id'],
+        'nama'                  => $user['nama'],
+        'username'              => $user['username'],
+        'role'                  => $user['role'],
+        'nim'                   => $user['nim'] ?? '',
+        'nidn'                  => $user['nidn'] ?? '',
+        'must_change_password'  => (int)$user['must_change_password'],
+        'is_active'             => (int)$user['is_active']
+    ]
 ]);
 
 $conn->close();
