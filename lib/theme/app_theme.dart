@@ -172,6 +172,78 @@ class AppDecorations {
   );
 }
 
+// --- Warna & Dekorasi khusus desain baru (soft pastel) ---
+//   Dipakai di halaman-halaman yang sudah diredesain sesuai referensi
+//   Stitch (login, dst). AppColors lama TETAP dipertahankan di atas
+//   supaya halaman yang belum diredesain (home, dsb) tidak berubah.
+class AppColorsSoft {
+  AppColorsSoft._();
+
+  static const Color navy = Color(0xFF1A1A2E);
+  static const Color gradientPeach = Color(0xFFFFE8D6);
+  static const Color gradientPink = Color(0xFFFDE2E4);
+  static const Color gradientLavender = Color(0xFFE8E4F3);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color fieldFill = Color(0xFFF3F3F6);
+  static const Color textGray = Color(0xFF6B7280);
+  static const Color textGrayLight = Color(0xFF9CA3AF);
+  static const Color linkAccent = Color(0xFFB5651D);
+
+  static LinearGradient get backgroundGradient => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [gradientPeach, gradientPink, gradientLavender],
+      );
+
+  static BoxDecoration card() => BoxDecoration(
+        color: cardWhite,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: navy.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      );
+
+  static InputDecoration fieldDecoration({
+    required String hint,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) =>
+      InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: textGrayLight, fontSize: 14),
+        prefixIcon: Icon(prefixIcon, color: textGray, size: 20),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: fieldFill,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: navy, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE05252), width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE05252), width: 1.5),
+        ),
+      );
+}
+
 // --- ThemeData Utama ---
 ThemeData buildAppTheme() {
   return ThemeData(

@@ -1,16 +1,15 @@
-import 'dart:convert';
-import 'package:app_input/pages/change_password.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/api_client.dart';
+import 'change_password.dart';
 import 'home_page.dart';
 
 // ============================================================
 // login_page.dart — Halaman Login Portal Akademik
+//   Desain: soft pastel glassmorphism (sesuai referensi Stitch)
 // ============================================================
-
-const String _baseUrl = 'http://10.10.1.159/flutter_api/';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,69 +40,49 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http
-          .post(
-            Uri.parse('${_baseUrl}login.php'),
-            body: {
-              'username': _usernameCtrl.text.trim(),
-              'password': _passwordCtrl.text.trim(),
-            },
-          )
-          .timeout(const Duration(seconds: 15));
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final session = await AuthService.login(
+        _usernameCtrl.text.trim(),
+        _passwordCtrl.text.trim(),
+      );
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      if (data['status'] == 'ok') {
-        final String userId = data['id'].toString();
-        final String nama = data['nama'].toString();
-        final String username = data['username'].toString();
-        final String role = data['role'].toString();
-        final String nim = data['nim']?.toString() ?? '';
-        final int mustChange =
-            int.tryParse(data['must_change_password'].toString()) ?? 0;
-
-        if (mustChange == 1) {
-          // Wajib ganti password dulu
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ChangePasswordPage(
-                userId: userId,
-                nama: nama,
-                username: username,
-                role: role,
-                nim: nim,
-              ),
+      if (session.mustChangePassword == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChangePasswordPage(
+              userId: session.id,
+              nama: session.nama,
+              username: session.username,
+              role: session.role,
+              nim: session.nim,
             ),
-          );
-        } else {
-          // Langsung ke home
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HomePage(
-                userId: userId,
-                nama: nama,
-                username: username,
-                role: role,
-                nim: nim,
-              ),
-            ),
-          );
-        }
+          ),
+        );
       } else {
-        _showSnackBar(data['message'] ?? 'Login gagal', isError: true);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomePage(
+              userId: session.id,
+              nama: session.nama,
+              username: session.username,
+              role: session.role,
+              nim: session.nim,
+            ),
+          ),
+        );
       }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showSnackBar(e.message, isError: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _showSnackBar(
-        'Tidak dapat terhubung ke server. Periksa koneksi Anda.',
-        isError: true,
-      );
+      _showSnackBar('Tidak dapat terhubung ke server. Periksa koneksi Anda.', isError: true);
     }
   }
 
@@ -111,9 +90,29 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: isError ? AppColors.danger : AppColors.success,
+        backgroundColor: isError ? const Color(0xFFE05252) : const Color(0xFF3BAA6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _handleLupaPassword() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Lupa Password?'),
+        content: const Text(
+          'Reset password hanya bisa dilakukan oleh Admin Fakultas. '
+          'Silakan hubungi Admin melalui email/WhatsApp resmi kampus.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Mengerti'),
+          ),
+        ],
       ),
     );
   }
@@ -124,22 +123,24 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 32),
-                  _buildFormCard(),
-                  const SizedBox(height: 20),
-                  _buildFooterInfo(),
-                ],
+      body: Container(
+        decoration: BoxDecoration(gradient: AppColorsSoft.backgroundGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 28),
+                    _buildFormCard(),
+                    const SizedBox(height: 24),
+                    _buildFooterInfo(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -148,58 +149,53 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // --- Header: logo + judul ---
+  // --- Header: ilustrasi mascot + judul ---
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo / Icon Sekolah
-        Container(
-          width: 84,
-          height: 84,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+        SizedBox(
+          height: 160,
+          child: Image.asset(
+            'assets/images/mascot_wisuda.png',
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColorsSoft.cardWhite,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColorsSoft.navy.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: const Icon(
-            Icons.school_rounded,
-            color: AppColors.white,
-            size: 44,
+              child: const Icon(
+                Icons.school_rounded,
+                color: AppColorsSoft.navy,
+                size: 56,
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         const Text(
-          'PORTAL AKADEMIK',
+          'Portal Akademik',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
-            color: AppColors.primary,
-            letterSpacing: 2.0,
+            color: AppColorsSoft.navy,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         const Text(
-          'MAHASISWA',
+          'Mahasiswa',
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primaryMed,
-            letterSpacing: 4.0,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 3,
-          width: 60,
-          decoration: BoxDecoration(
-            color: AppColors.primaryMed,
-            borderRadius: BorderRadius.circular(2),
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: AppColorsSoft.textGray,
           ),
         ),
       ],
@@ -209,50 +205,72 @@ class _LoginPageState extends State<LoginPage> {
   // --- Form Card ---
   Widget _buildFormCard() {
     return Container(
-      decoration: AppDecorations.card(),
+      width: double.infinity,
+      decoration: AppColorsSoft.card(),
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Masuk ke Akun Anda', style: AppTextStyles.heading3),
-            const SizedBox(height: 4),
             const Text(
-              'Gunakan kredensial yang diberikan oleh administrator',
-              style: AppTextStyles.bodySmall,
+              'Username / NIM',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColorsSoft.navy,
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // Username
+            const SizedBox(height: 8),
             TextFormField(
               controller: _usernameCtrl,
-              decoration: AppDecorations.inputDecoration(
-                label: 'Username / NIM',
-                hint: 'Masukkan username atau NIM',
+              decoration: AppColorsSoft.fieldDecoration(
+                hint: 'Masukkan NIM Anda',
                 prefixIcon: Icons.person_outline_rounded,
               ),
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Username wajib diisi'
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Username wajib diisi' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Password
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Password',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColorsSoft.navy,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _handleLupaPassword,
+                  child: const Text(
+                    'Lupa Password?',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColorsSoft.linkAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _passwordCtrl,
-              decoration: AppDecorations.inputDecoration(
-                label: 'Password',
-                hint: 'Masukkan password',
+              decoration: AppColorsSoft.fieldDecoration(
+                hint: 'Masukkan Password',
                 prefixIcon: Icons.lock_outline_rounded,
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: AppColors.textLight,
+                    color: AppColorsSoft.textGray,
                     size: 20,
                   ),
                   onPressed: () =>
@@ -262,25 +280,23 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _login(),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Password wajib diisi'
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Password wajib diisi' : null,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
 
-            // Tombol LOGIN
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 52,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColorsSoft.navy,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(26),
                   ),
-                  elevation: 2,
+                  elevation: 0,
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -288,16 +304,23 @@ class _LoginPageState extends State<LoginPage> {
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: AppColors.white,
+                          color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'MASUK',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
-                        ),
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'MASUK',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded, size: 18),
+                        ],
                       ),
               ),
             ),
@@ -309,28 +332,14 @@ class _LoginPageState extends State<LoginPage> {
 
   // --- Footer info ---
   Widget _buildFooterInfo() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.infoLight,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.info_outline_rounded, color: AppColors.info, size: 18),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Akun diberikan oleh administrator. Hubungi bagian akademik jika mengalami masalah.',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.info,
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
+    return const Text(
+      'Gunakan akun Sistem Informasi Mahasiswa.\n'
+      'Kendala login hubungi Admin Fakultas melalui\nemail/WhatsApp resmi.',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 12.5,
+        color: AppColorsSoft.textGray,
+        height: 1.6,
       ),
     );
   }

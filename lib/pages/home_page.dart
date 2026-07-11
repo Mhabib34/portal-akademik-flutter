@@ -13,7 +13,7 @@ import 'login_page.dart';
 //   - Mahasiswa : lihat biodata + ganti password
 // ============================================================
 
-const String _baseUrl = 'http://10.10.1.159/flutter_api/';
+const String _baseUrl = 'http://192.168.1.10/flutter_api/';
 
 class HomePage extends StatefulWidget {
   final String userId;

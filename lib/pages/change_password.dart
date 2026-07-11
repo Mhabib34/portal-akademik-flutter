@@ -1,17 +1,15 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/api_client.dart';
 import 'home_page.dart';
 
 // ============================================================
-// change_password_page.dart
+// change_password.dart
 // Halaman ganti password — WAJIB saat pertama login
 // Tidak bisa di-back (PopScope)
 // ============================================================
-
-const String _baseUrl = 'http://10.10.1.159/flutter_api/';
 
 class ChangePasswordPage extends StatefulWidget {
   final String userId;
@@ -56,50 +54,33 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http
-          .post(
-            Uri.parse('${_baseUrl}change_password.php'),
-            body: {
-              'user_id': widget.userId,
-              'password_baru': _pwBaruCtrl.text.trim(),
-            },
-          )
-          .timeout(const Duration(seconds: 15));
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      await AuthService.changePassword(_pwBaruCtrl.text.trim());
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      if (data['status'] == 'ok') {
-        _showSnackBar(
-          'Password berhasil diubah! Selamat datang.',
-          isError: false,
-        );
+      _showSnackBar('Password berhasil diubah! Selamat datang.', isError: false);
 
-        // Pindah ke home, hapus semua route sebelumnya
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HomePage(
-              userId: widget.userId,
-              nama: widget.nama,
-              username: widget.username,
-              role: widget.role,
-              nim: widget.nim,
-            ),
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            userId: widget.userId,
+            nama: widget.nama,
+            username: widget.username,
+            role: widget.role,
+            nim: widget.nim,
           ),
-          (route) => false,
-        );
-      } else {
-        _showSnackBar(
-          data['message'] ?? 'Gagal mengubah password',
-          isError: true,
-        );
-      }
+        ),
+        (route) => false,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showSnackBar(e.message, isError: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -127,7 +108,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
-        // Tidak melakukan apa-apa — user harus ganti password dulu
         if (!didPop) {
           _showSnackBar(
             'Anda harus mengubah password terlebih dahulu sebelum melanjutkan.',
@@ -139,7 +119,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         backgroundColor: AppColors.background,
         appBar: AppBar(
           title: const Text('Ganti Password'),
-          automaticallyImplyLeading: false, // hilangkan tombol back di AppBar
+          automaticallyImplyLeading: false,
           backgroundColor: AppColors.primary,
         ),
         body: SafeArea(
@@ -226,7 +206,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             const SizedBox(height: 24),
 
-            // Password Baru
             TextFormField(
               controller: _pwBaruCtrl,
               decoration: AppDecorations.inputDecoration(
@@ -247,15 +226,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               obscureText: _obscureBaru,
               textInputAction: TextInputAction.next,
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return 'Password baru wajib diisi';
+                }
                 if (v.trim().length < 6) return 'Password minimal 6 karakter';
                 return null;
               },
             ),
             const SizedBox(height: 16),
 
-            // Konfirmasi Password
             TextFormField(
               controller: _pwKonfirmCtrl,
               decoration: AppDecorations.inputDecoration(
@@ -278,8 +257,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _gantiPassword(),
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return 'Konfirmasi password wajib diisi';
+                }
                 if (v.trim() != _pwBaruCtrl.text.trim()) {
                   return 'Password tidak cocok';
                 }
@@ -288,7 +268,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             const SizedBox(height: 28),
 
-            // Tombol
             SizedBox(
               width: double.infinity,
               height: 50,
