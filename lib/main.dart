@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'theme/app_theme.dart';
-import 'pages/login_page.dart';
+import 'pages/splash_page.dart';
 
 // ============================================================
 // main.dart — Entry point Portal Akademik Mahasiswa
@@ -36,7 +36,7 @@ class PortalAkademikApp extends StatelessWidget {
       title: 'Portal Akademik Mahasiswa',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const LoginPage(),
+      home: const SplashPage(),
     );
   }
 }
