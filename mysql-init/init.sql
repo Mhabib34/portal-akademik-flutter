@@ -1,7 +1,9 @@
 -- ============================================================
--- PORTAL AKADEMIK MAHASISWA — init.sql (v3)
+-- PORTAL AKADEMIK MAHASISWA — init.sql (v4)
 -- Mencakup: users, auth_tokens, mahasiswa, dosen, tahun_ajaran,
 --           mata_kuliah, ruang, kelas, jadwal, krs, krs_detail, nilai
+-- v4: struktur nilai diubah jadi 5 komponen (Tugas, Quiz 1, Quiz 2,
+--     UTS, Kehadiran, UAS)
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS portal_mahasiswa
@@ -197,18 +199,29 @@ CREATE TABLE IF NOT EXISTS krs_detail (
 -- Tabel nilai
 --   1 baris = nilai 1 mahasiswa di 1 kelas (mata kuliah tertentu,
 --   tahun ajaran tertentu — sudah tersirat lewat kelas_id).
---   Bobot tetap: Tugas 30% + UTS 30% + UAS 40% (dihitung di
---   aplikasi/PHP saat simpan, bukan generated column, supaya
---   mudah dijelaskan & tidak terikat versi MySQL tertentu).
+--   Bobot tetap (dihitung di aplikasi/PHP saat simpan, bukan
+--   generated column, supaya mudah dijelaskan & tidak terikat
+--   versi MySQL tertentu):
+--     Tugas       20%
+--     Quiz 1       5%  (sebelum UTS)
+--     Quiz 2       5%  (sebelum UAS)
+--     UTS         25%
+--     Kehadiran   10%
+--     UAS         35%
+--     --------------
+--     Total      100%
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nilai (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   mahasiswa_id INT NOT NULL,
   kelas_id     INT NOT NULL,
   tugas        DECIMAL(5,2) NOT NULL DEFAULT 0,
+  quiz_1       DECIMAL(5,2) NOT NULL DEFAULT 0,   -- quiz sebelum UTS
+  quiz_2       DECIMAL(5,2) NOT NULL DEFAULT 0,   -- quiz sebelum UAS
   uts          DECIMAL(5,2) NOT NULL DEFAULT 0,
+  kehadiran    DECIMAL(5,2) NOT NULL DEFAULT 0,   -- persentase/skor kehadiran 0-100
   uas          DECIMAL(5,2) NOT NULL DEFAULT 0,
-  nilai_angka  DECIMAL(5,2) NOT NULL DEFAULT 0,   -- = tugas*0.3 + uts*0.3 + uas*0.4
+  nilai_angka  DECIMAL(5,2) NOT NULL DEFAULT 0,   -- = tugas*0.20 + quiz_1*0.05 + quiz_2*0.05 + uts*0.25 + kehadiran*0.10 + uas*0.35
   nilai_huruf  VARCHAR(2)   NOT NULL DEFAULT '-', -- A/B/C/D/E
   bobot        DECIMAL(3,2) NOT NULL DEFAULT 0,   -- untuk hitung IPK: A=4,B=3,C=2,D=1,E=0
   updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

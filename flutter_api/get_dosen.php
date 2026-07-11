@@ -1,9 +1,8 @@
 <?php
 // ============================================================
-// get_mahasiswa.php — Ambil data mahasiswa
-//   Admin  : semua data (JOIN ke users)
-//   Mahasiswa (role=user) : data sendiri saja
-//   Role/user_id diambil dari token, bukan query param lagi
+// get_dosen.php — Ambil data dosen
+//   Admin : semua data
+//   Dosen : data sendiri saja
 // ============================================================
 
 require_once 'koneksi.php';
@@ -18,11 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $currentUser = requireAuth($conn);
 
 if ($currentUser['role'] === 'admin') {
-    $sql = "SELECT m.id, m.nim, m.nama, m.jurusan, m.alamat,
-                   m.user_id, u.is_active, u.must_change_password
-            FROM mahasiswa m
-            JOIN users u ON u.id = m.user_id
-            ORDER BY m.nama ASC";
+    $sql = "SELECT d.id, d.nidn, d.nama, d.no_hp,
+                   d.user_id, u.is_active, u.must_change_password
+            FROM dosen d
+            JOIN users u ON u.id = d.user_id
+            ORDER BY d.nama ASC";
 
     $result = $conn->query($sql);
 
@@ -36,10 +35,9 @@ if ($currentUser['role'] === 'admin') {
     while ($row = $result->fetch_assoc()) {
         $data[] = [
             'id'                    => (string)$row['id'],
-            'nim'                   => $row['nim'],
+            'nidn'                  => $row['nidn'],
             'nama'                  => $row['nama'],
-            'jurusan'               => $row['jurusan'],
-            'alamat'                => $row['alamat'] ?? '',
+            'no_hp'                 => $row['no_hp'] ?? '',
             'user_id'               => (string)$row['user_id'],
             'is_active'             => (int)$row['is_active'],
             'must_change_password'  => (int)$row['must_change_password']
@@ -48,13 +46,13 @@ if ($currentUser['role'] === 'admin') {
 
     echo json_encode(['status' => 'ok', 'data' => $data, 'total' => count($data)]);
 
-} elseif ($currentUser['role'] === 'user') {
+} elseif ($currentUser['role'] === 'dosen') {
     $stmt = $conn->prepare(
-        "SELECT m.id, m.nim, m.nama, m.jurusan, m.alamat,
-                m.user_id, u.is_active, u.must_change_password
-         FROM mahasiswa m
-         JOIN users u ON u.id = m.user_id
-         WHERE m.user_id = ?
+        "SELECT d.id, d.nidn, d.nama, d.no_hp,
+                d.user_id, u.is_active, u.must_change_password
+         FROM dosen d
+         JOIN users u ON u.id = d.user_id
+         WHERE d.user_id = ?
          LIMIT 1"
     );
     $stmt->bind_param('i', $currentUser['id']);
@@ -62,7 +60,7 @@ if ($currentUser['role'] === 'admin') {
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Data mahasiswa tidak ditemukan']);
+        echo json_encode(['status' => 'error', 'message' => 'Data dosen tidak ditemukan']);
         $stmt->close();
         $conn->close();
         exit();
@@ -75,10 +73,9 @@ if ($currentUser['role'] === 'admin') {
         'status' => 'ok',
         'data'   => [
             'id'                    => (string)$row['id'],
-            'nim'                   => $row['nim'],
+            'nidn'                  => $row['nidn'],
             'nama'                  => $row['nama'],
-            'jurusan'               => $row['jurusan'],
-            'alamat'                => $row['alamat'] ?? '',
+            'no_hp'                 => $row['no_hp'] ?? '',
             'user_id'               => (string)$row['user_id'],
             'is_active'             => (int)$row['is_active'],
             'must_change_password'  => (int)$row['must_change_password']
