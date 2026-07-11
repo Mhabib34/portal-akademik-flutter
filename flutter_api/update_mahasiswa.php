@@ -18,11 +18,11 @@ requireRole($currentUser, ['admin']);
 $id      = trim($_POST['id']      ?? '');
 $nim     = trim($_POST['nim']     ?? '');
 $nama    = trim($_POST['nama']    ?? '');
-$jurusan = trim($_POST['jurusan'] ?? '');
+$prodiId = trim($_POST['prodi_id'] ?? '');
 $alamat  = trim($_POST['alamat']  ?? '');
 
-if (empty($id) || empty($nim) || empty($nama) || empty($jurusan)) {
-    echo json_encode(['status' => 'error', 'message' => 'ID, NIM, nama, dan jurusan wajib diisi']);
+if (empty($id) || empty($nim) || empty($nama) || empty($prodiId)) {
+    echo json_encode(['status' => 'error', 'message' => 'ID, NIM, nama, dan prodi_id wajib diisi']);
     exit();
 }
 
@@ -57,9 +57,9 @@ $conn->begin_transaction();
 
 try {
     $stmtMhs = $conn->prepare(
-        "UPDATE mahasiswa SET nim = ?, nama = ?, jurusan = ?, alamat = ? WHERE id = ?"
+        "UPDATE mahasiswa SET nim = ?, nama = ?, prodi_id = ?, alamat = ? WHERE id = ?"
     );
-    $stmtMhs->bind_param('ssssi', $nim, $nama, $jurusan, $alamat, $id);
+    $stmtMhs->bind_param('ssisi', $nim, $nama, $prodiId, $alamat, $id);
     $stmtMhs->execute();
     $stmtMhs->close();
 
