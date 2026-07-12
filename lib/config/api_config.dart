@@ -71,4 +71,16 @@ class ApiConfig {
   static const String getNilai = '${baseUrl}get_nilai.php';
   static const String simpanNilai = '${baseUrl}simpan_nilai.php';
   static const String getKhs = '${baseUrl}get_khs.php';
+
+  // --- Fakultas ---
+  static const String getFakultas = '${baseUrl}get_fakultas.php';
+  static const String simpanFakultas = '${baseUrl}simpan_fakultas.php';
+  static const String updateFakultas = '${baseUrl}update_fakultas.php';
+  static const String deleteFakultas = '${baseUrl}delete_fakultas.php';
+
+  // --- Prodi ---
+  static const String getProdi = '${baseUrl}get_prodi.php';
+  static const String simpanProdi = '${baseUrl}simpan_prodi.php';
+  static const String updateProdi = '${baseUrl}update_prodi.php';
+  static const String deleteProdi = '${baseUrl}delete_prodi.php';
 }

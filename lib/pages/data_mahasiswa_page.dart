@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
+import '../models/prodi_model.dart';
 
 // ============================================================
 // data_mahasiswa_page.dart — Manajemen Data Mahasiswa (Admin)
@@ -25,6 +26,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   String _searchQuery = '';
 
   List<Map<String, dynamic>> _allMahasiswa = [];
+  List<Prodi> _prodiList = [];
 
   List<Map<String, dynamic>> get _filteredMahasiswa {
     if (_searchQuery.trim().isEmpty) return _allMahasiswa;
@@ -53,11 +55,18 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
 
     try {
       final res = await ApiClient.get(ApiConfig.getMahasiswa);
+      final prodiRes = await ApiClient.get(ApiConfig.getProdi);
+      
       if (res['status'] == 'ok') {
         final List list = res['data'] as List? ?? [];
         _allMahasiswa = list
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+      }
+      
+      if (prodiRes['status'] == 'ok') {
+        final List list = prodiRes['data'] as List? ?? [];
+        _prodiList = list.map((e) => Prodi.fromJson(e as Map<String, dynamic>)).toList();
       }
     } catch (_) {
       if (mounted) {
@@ -166,9 +175,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
     final namaCtrl = TextEditingController(
       text: existing?['nama']?.toString() ?? '',
     );
-    final jurusanCtrl = TextEditingController(
-      text: existing?['jurusan']?.toString() ?? '',
-    );
+    String? selectedProdiId = existing?['prodi_id']?.toString();
     final alamatCtrl = TextEditingController(
       text: existing?['alamat']?.toString() ?? '',
     );
@@ -178,13 +185,13 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) {
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (builderCtx, setSheetState) {
           Future<void> submit() async {
             if (nimCtrl.text.trim().isEmpty ||
                 namaCtrl.text.trim().isEmpty ||
-                jurusanCtrl.text.trim().isEmpty) {
-              _showSnack('NIM, Nama, dan Jurusan wajib diisi', isError: true);
+                selectedProdiId == null) {
+              _showSnack('NIM, Nama, dan Program Studi wajib diisi', isError: true);
               return;
             }
             setSheetState(() => isSaving = true);
@@ -192,7 +199,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
               final body = {
                 'nim': nimCtrl.text.trim(),
                 'nama': namaCtrl.text.trim(),
-                'jurusan': jurusanCtrl.text.trim(),
+                'prodi_id': selectedProdiId!,
                 'alamat': alamatCtrl.text.trim(),
               };
               final res = await ApiClient.postForm(
@@ -202,7 +209,10 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                     : body,
               );
               if (res['status'] == 'ok') {
-                if (mounted) Navigator.pop(ctx);
+                if (sheetCtx.mounted) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                  Navigator.pop(sheetCtx);
+                }
                 _showSnack(
                   isEdit
                       ? 'Data mahasiswa berhasil diperbarui'
@@ -224,7 +234,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
 
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              bottom: MediaQuery.of(builderCtx).viewInsets.bottom,
             ),
             child: Container(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -288,13 +298,29 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _formLabel('Jurusan / Program Studi'),
+                    _formLabel('Program Studi'),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: jurusanCtrl,
+                    InputDecorator(
                       decoration: AppColorsSoft.fieldDecoration(
-                        hint: 'Contoh: Teknik Informatika',
+                        hint: 'Pilih Prodi',
                         prefixIcon: Icons.school_outlined,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _prodiList.any((p) => p.id == selectedProdiId) ? selectedProdiId : null,
+                          isDense: true,
+                          hint: const Text('Pilih Prodi'),
+                          items: _prodiList.map((p) => DropdownMenuItem(
+                            value: p.id,
+                            child: Text(
+                              '${p.namaProdi} (${p.namaFakultas})',
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )).toList(),
+                          onChanged: (v) => setSheetState(() => selectedProdiId = v),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -315,7 +341,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                           child: TextButton(
                             onPressed: isSaving
                                 ? null
-                                : () => Navigator.pop(ctx),
+                                : () => Navigator.pop(sheetCtx),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
@@ -585,7 +611,8 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   Widget _buildMahasiswaCard(Map<String, dynamic> mhs) {
     final nama = mhs['nama']?.toString() ?? '-';
     final nim = mhs['nim']?.toString() ?? '-';
-    final jurusan = mhs['jurusan']?.toString() ?? '-';
+    final prodi = mhs['nama_prodi']?.toString() ?? '-';
+    final fakultas = mhs['nama_fakultas']?.toString() ?? '-';
     final isActive = int.tryParse(mhs['is_active']?.toString() ?? '0') == 1;
 
     return Container(
@@ -622,7 +649,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$nim • $jurusan',
+                  '$nim • $prodi - $fakultas',
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
