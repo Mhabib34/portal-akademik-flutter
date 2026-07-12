@@ -919,7 +919,7 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: SizedBox(
         height: 76,
         child: Stack(

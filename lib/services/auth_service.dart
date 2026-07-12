@@ -45,5 +45,23 @@ class AuthService {
     if (data['status'] != 'ok') {
       throw ApiException(data['message']?.toString() ?? 'Gagal mengubah password');
     }
+
+    // Update sesi lokal: set must_change_password = 0
+    // agar app tidak minta ganti password lagi saat dibuka ulang
+    final currentSession = await TokenService.getSession();
+    if (currentSession != null) {
+      final updatedSession = UserSession(
+        token: currentSession.token,
+        expiresAt: currentSession.expiresAt,
+        id: currentSession.id,
+        nama: currentSession.nama,
+        username: currentSession.username,
+        role: currentSession.role,
+        nim: currentSession.nim,
+        nidn: currentSession.nidn,
+        mustChangePassword: 0,
+      );
+      await TokenService.saveSession(updatedSession);
+    }
   }
 }
