@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import '../theme/app_theme.dart';
 
@@ -64,7 +65,7 @@ class SoftBottomNav extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final centerWidth = hasCenter ? 56.0 : 0.0;
-                  final itemWidth = (constraints.maxWidth - centerWidth) / items.length;
+                  final itemWidth = math.max(0.0, (constraints.maxWidth - centerWidth) / items.length);
 
                   final leftPosition = currentIndex < half
                       ? currentIndex * itemWidth + (itemWidth - 46) / 2

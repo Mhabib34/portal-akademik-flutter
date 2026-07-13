@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/soft_bottom_nav.dart';
-import '../pages/penjadwalan_page.dart';
-import '../pages/fakultas_prodi_hub_page.dart';
+import './soft_bottom_nav.dart';
+import '../pages/admin/penjadwalan_page.dart';
+import '../pages/admin/fakultas_prodi_hub_page.dart';
 import '../services/auth_service.dart';
-import '../widgets/logout_dialog.dart';
-import '../pages/login_page.dart';
+import './logout_dialog.dart';
+import '../pages/auth/login_page.dart';
 
 // ============================================================
 // admin_nav_helper.dart — Logika navigasi bottom-nav Admin

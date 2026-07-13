@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/soft_bottom_nav.dart';
+import './soft_bottom_nav.dart';
 
 // ============================================================
 // dosen_nav_helper.dart — Logika navigasi bottom-nav Dosen

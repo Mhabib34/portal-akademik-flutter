@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/soft_bottom_nav.dart';
-import '../pages/mahasiswa_profil_page.dart';
+import './soft_bottom_nav.dart';
+import '../pages/mahasiswa/mahasiswa_profil_page.dart';
 
 // ============================================================
 // mahasiswa_nav_helper.dart — Logika navigasi bottom-nav Mahasiswa
