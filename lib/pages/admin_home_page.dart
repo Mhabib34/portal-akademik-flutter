@@ -11,6 +11,8 @@ import 'data_dosen_page.dart';
 import 'data_mahasiswa_page.dart';
 import 'manajemen_user_page.dart';
 import 'data_mata_kuliah_page.dart';
+import 'data_kelas_page.dart';
+import 'data_ruang_page.dart';
 import 'penjadwalan_page.dart';
 import 'fakultas_prodi_hub_page.dart';
 
@@ -344,6 +346,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
         ),
       ),
       _MenuData(
+        Icons.class_rounded,
+        'Data Kelas',
+        const Color(0xFFDCEBFF),
+        const Color(0xFF2E6FE0),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataKelasPage()),
+        ),
+      ),
+      _MenuData(
         Icons.event_note_rounded,
         'Penjadwalan',
         const Color(0xFFD9F5E4),
@@ -351,6 +363,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PenjadwalanPage()),
+        ),
+      ),
+      _MenuData(
+        Icons.meeting_room_rounded,
+        'Data Ruang',
+        const Color(0xFFE8EAF6),
+        const Color(0xFF3F51B5),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataRuangPage()),
         ),
       ),
       _MenuData(

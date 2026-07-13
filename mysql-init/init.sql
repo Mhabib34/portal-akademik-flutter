@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS kelas (
   mata_kuliah_id  INT NOT NULL,
   tahun_ajaran_id INT NOT NULL,
   dosen_id        INT NOT NULL,
-  nama_kelas      VARCHAR(5) NOT NULL DEFAULT 'A',
+  nama_kelas      VARCHAR(50) NOT NULL DEFAULT 'A',
   kapasitas       INT NOT NULL DEFAULT 40,
   CONSTRAINT fk_kelas_mk
     FOREIGN KEY (mata_kuliah_id) REFERENCES mata_kuliah(id)

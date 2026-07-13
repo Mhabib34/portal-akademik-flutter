@@ -196,19 +196,49 @@ class _DataProdiPageState extends State<DataProdiPage> {
     bool success = false;
     String? errorMsg;
 
-    await showDialog(
+    await showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (builderCtx, setLocal) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(existing == null ? 'Tambah Prodi' : 'Edit Prodi'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (builderCtx, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(builderCtx).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              decoration: const BoxDecoration(
+                color: AppColorsSoft.cardWhite,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: AppColorsSoft.fieldFill,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      existing == null ? 'Tambah Prodi' : 'Edit Prodi',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColorsSoft.navy,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _formLabel('Pilih Fakultas'),
+                    const SizedBox(height: 8),
                 InputDecorator(
                   decoration: AppColorsSoft.fieldDecoration(
                     hint: 'Pilih Fakultas',
@@ -230,11 +260,13 @@ class _DataProdiPageState extends State<DataProdiPage> {
                             ),
                           )
                           .toList(),
-                      onChanged: (v) => setLocal(() => selectedFakultasId = v),
+                      onChanged: (v) => setSheetState(() => selectedFakultasId = v),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                _formLabel('Nama Program Studi'),
+                const SizedBox(height: 8),
                 TextField(
                   controller: namaCtrl,
                   decoration: AppColorsSoft.fieldDecoration(
@@ -242,82 +274,111 @@ class _DataProdiPageState extends State<DataProdiPage> {
                     prefixIcon: Icons.school_rounded,
                   ),
                 ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: saving
+                            ? null
+                            : () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                Future.delayed(const Duration(milliseconds: 150), () {
+                                  if (sheetCtx.mounted) Navigator.pop(sheetCtx);
+                                });
+                              },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: AppColorsSoft.textGray,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: saving
+                            ? null
+                            : () async {
+                                if (selectedFakultasId == null ||
+                                    namaCtrl.text.trim().isEmpty) {
+                                  _showSnackBar(
+                                    'Fakultas dan Nama Prodi wajib diisi',
+                                    isError: true,
+                                  );
+                                  return;
+                                }
+                                setSheetState(() => saving = true);
+                                try {
+                                  final body = {
+                                    'fakultas_id': selectedFakultasId!,
+                                    'nama_prodi': namaCtrl.text.trim(),
+                                    if (existing != null) 'id': existing.id,
+                                  };
+                                  final url = existing == null
+                                      ? ApiConfig.simpanProdi
+                                      : ApiConfig.updateProdi;
+                                  final data = await ApiClient.postForm(url, body: body);
+                                  if (!sheetCtx.mounted) return;
+                                  if (data['status'] == 'ok') {
+                                    success = true;
+                                  } else {
+                                    errorMsg = data['message']?.toString() ?? 'Gagal';
+                                  }
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                  await Future.delayed(const Duration(milliseconds: 200));
+                                  if (!sheetCtx.mounted) return;
+                                  Navigator.pop(sheetCtx);
+                                } catch (_) {
+                                  setSheetState(() => saving = false);
+                                  _showSnackBar('Koneksi gagal', isError: true);
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColorsSoft.navy,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(26),
+                          ),
+                        ),
+                        child: saving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Simpan',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: saving
-                  ? null
-                  : () {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Future.delayed(const Duration(milliseconds: 150), () {
-                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-                      });
-                    },
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      if (selectedFakultasId == null ||
-                          namaCtrl.text.trim().isEmpty) {
-                        _showSnackBar(
-                          'Fakultas dan Nama Prodi wajib diisi',
-                          isError: true,
-                        );
-                        return;
-                      }
-                      setLocal(() => saving = true);
-                      try {
-                        final body = {
-                          'fakultas_id': selectedFakultasId!,
-                          'nama_prodi': namaCtrl.text.trim(),
-                          if (existing != null) 'id': existing.id,
-                        };
-                        final url = existing == null
-                            ? ApiConfig.simpanProdi
-                            : ApiConfig.updateProdi;
-                        final data = await ApiClient.postForm(url, body: body);
-                        if (!dialogCtx.mounted) return;
-                        if (data['status'] == 'ok') {
-                          success = true;
-                        } else {
-                          errorMsg = data['message']?.toString() ?? 'Gagal';
-                        }
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        await Future.delayed(const Duration(milliseconds: 200));
-                        if (!dialogCtx.mounted) return;
-                        Navigator.pop(dialogCtx);
-                      } catch (_) {
-                        setLocal(() => saving = false);
-                        _showSnackBar('Koneksi gagal', isError: true);
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColorsSoft.navy,
-                minimumSize: const Size(90, 42),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: saving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Simpan'),
-            ),
-          ],
         ),
-      ),
-    );
-    namaCtrl.dispose();
+      );
+    },
+  ),
+);
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) {
+      namaCtrl.dispose();
+    }
 
     if (success) {
       _showSnackBar(
@@ -330,6 +391,15 @@ class _DataProdiPageState extends State<DataProdiPage> {
       _showSnackBar(errorMsg!, isError: true);
     }
   }
+
+  Widget _formLabel(String text) => Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          color: AppColorsSoft.navy,
+        ),
+      );
 
   Future<void> _deleteProdi(Prodi p) async {
     final jumlahMhs = _mahasiswaCount[p.id] ?? 0;

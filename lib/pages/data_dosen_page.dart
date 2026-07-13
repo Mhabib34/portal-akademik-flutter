@@ -139,16 +139,18 @@ class _DataDosenPageState extends State<DataDosenPage> {
     );
     bool isSaving = false;
 
-    await showDialog(
+    await showModalBottomSheet(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) {
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (builderCtx, setSheetState) {
           Future<void> submit() async {
             if (nidnCtrl.text.trim().isEmpty || namaCtrl.text.trim().isEmpty) {
               _showSnack('NIDN dan Nama wajib diisi', isError: true);
               return;
             }
-            setDialogState(() => isSaving = true);
+            setSheetState(() => isSaving = true);
             try {
               final body = {
                 'nidn': nidnCtrl.text.trim(),
@@ -162,7 +164,7 @@ class _DataDosenPageState extends State<DataDosenPage> {
                     : body,
               );
               if (res['status'] == 'ok') {
-                if (mounted) Navigator.pop(ctx);
+                if (mounted) Navigator.pop(sheetCtx);
                 _showSnack(
                   isEdit
                       ? 'Data dosen berhasil diperbarui'
@@ -170,80 +172,152 @@ class _DataDosenPageState extends State<DataDosenPage> {
                 );
                 _loadData();
               } else {
-                setDialogState(() => isSaving = false);
+                setSheetState(() => isSaving = false);
                 _showSnack(
                   res['message']?.toString() ?? 'Gagal menyimpan data',
                   isError: true,
                 );
               }
             } catch (_) {
-              setDialogState(() => isSaving = false);
+              setSheetState(() => isSaving = false);
               _showSnack('Gagal terhubung ke server', isError: true);
             }
           }
 
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(builderCtx).viewInsets.bottom,
             ),
-            title: Text(isEdit ? 'Edit Data Dosen' : 'Tambah Dosen Baru'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nidnCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: AppColorsSoft.fieldDecoration(
-                    hint: 'NIDN',
-                    prefixIcon: Icons.badge_outlined,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: namaCtrl,
-                  decoration: AppColorsSoft.fieldDecoration(
-                    hint: 'Nama Lengkap (mis. Dr. Ahmad Subarjo, M.T.)',
-                    prefixIcon: Icons.person_outline_rounded,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: hpCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: AppColorsSoft.fieldDecoration(
-                    hint: 'No. HP',
-                    prefixIcon: Icons.phone_outlined,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: isSaving ? null : () => Navigator.pop(ctx),
-                child: const Text('Batal'),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              decoration: const BoxDecoration(
+                color: AppColorsSoft.cardWhite,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              ElevatedButton(
-                onPressed: isSaving ? null : submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColorsSoft.navy,
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation(Colors.white),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: AppColorsSoft.fieldFill,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      )
-                    : Text(isEdit ? 'Simpan' : 'Tambah'),
+                      ),
+                    ),
+                    Text(
+                      isEdit ? 'Edit Data Dosen' : 'Tambah Dosen Baru',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColorsSoft.navy,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _formLabel('NIDN'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: nidnCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'NIDN',
+                        prefixIcon: Icons.badge_outlined,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel('Nama Lengkap'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: namaCtrl,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'Nama Lengkap (mis. Dr. Ahmad Subarjo, M.T.)',
+                        prefixIcon: Icons.person_outline_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel('No. HP'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: hpCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'No. HP',
+                        prefixIcon: Icons.phone_outlined,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isSaving ? null : () => Navigator.pop(sheetCtx),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: AppColorsSoft.textGray,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: isSaving ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColorsSoft.navy,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(26),
+                              ),
+                            ),
+                            child: isSaving
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                                    ),
+                                  )
+                                : Text(
+                                    isEdit ? 'Simpan' : 'Tambah',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           );
         },
       ),
     );
   }
+
+  Widget _formLabel(String text) => Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          color: AppColorsSoft.navy,
+        ),
+      );
 
   // ---------------- Hapus dosen ----------------
   Future<void> _confirmDelete(Map<String, dynamic> dosen) async {

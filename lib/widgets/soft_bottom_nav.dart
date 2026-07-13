@@ -61,19 +61,53 @@ class SoftBottomNav extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ...List.generate(
-                    leftItems.length,
-                    (i) => Expanded(child: _buildItem(i, leftItems[i])),
-                  ),
-                  if (hasCenter) const SizedBox(width: 56),
-                  ...List.generate(
-                    rightItems.length,
-                    (i) => Expanded(child: _buildItem(half + i, rightItems[i])),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final centerWidth = hasCenter ? 56.0 : 0.0;
+                  final itemWidth = (constraints.maxWidth - centerWidth) / items.length;
+
+                  final leftPosition = currentIndex < half
+                      ? currentIndex * itemWidth + (itemWidth - 46) / 2
+                      : currentIndex * itemWidth + centerWidth + (itemWidth - 46) / 2;
+
+                  return Stack(
+                    children: [
+                      // Animated Indicator
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                        left: leftPosition,
+                        top: (70 - 46) / 2,
+                        child: Container(
+                          width: 46,
+                          height: 46,
+                          decoration: const BoxDecoration(
+                            color: AppColorsSoft.navy,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      // Items Row
+                      Row(
+                        children: [
+                          ...List.generate(
+                            leftItems.length,
+                            (i) => SizedBox(
+                                width: itemWidth,
+                                child: _buildItem(i, leftItems[i])),
+                          ),
+                          if (hasCenter) SizedBox(width: centerWidth),
+                          ...List.generate(
+                            rightItems.length,
+                            (i) => SizedBox(
+                                width: itemWidth,
+                                child: _buildItem(half + i, rightItems[i])),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             if (hasCenter)
@@ -119,54 +153,41 @@ class SoftBottomNav extends StatelessWidget {
         height: 70,
         child: Center(
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
+            duration: const Duration(milliseconds: 200),
             transitionBuilder: (child, animation) => FadeTransition(
               opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
+              child: child,
             ),
-            child: selected ? _buildActiveItem(item) : _buildInactiveItem(item),
+            child: selected
+                ? Icon(
+                    item.icon,
+                    key: const ValueKey('icon_active'),
+                    size: 22,
+                    color: Colors.white,
+                  )
+                : Column(
+                    key: const ValueKey('icon_inactive'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(item.icon,
+                          size: 22, color: AppColorsSoft.textGrayLight),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.label,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColorsSoft.textGrayLight,
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
-    );
-  }
-
-  /// Aktif: icon di dalam lingkaran hitam, tanpa label
-  Widget _buildActiveItem(SoftNavItem item) {
-    return Container(
-      key: const ValueKey('active'),
-      width: 46,
-      height: 46,
-      decoration: const BoxDecoration(
-        color: AppColorsSoft.navy,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(item.icon, size: 22, color: Colors.white),
-    );
-  }
-
-  /// Tidak aktif: icon + label teks di bawahnya
-  Widget _buildInactiveItem(SoftNavItem item) {
-    return Column(
-      key: const ValueKey('inactive'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(item.icon, size: 22, color: AppColorsSoft.textGrayLight),
-        const SizedBox(height: 4),
-        Text(
-          item.label,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: AppColorsSoft.textGrayLight,
-            letterSpacing: 0.2,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
     );
   }
 }

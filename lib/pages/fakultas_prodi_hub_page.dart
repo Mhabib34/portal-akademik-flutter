@@ -23,10 +23,10 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
   final int _navIndex = 2;
 
   final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Home'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Schedule'),
+    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
+    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
     SoftNavItem(icon: Icons.storage_rounded, label: 'Data'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profile'),
+    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
 
   void _handlePlaceholder(String fitur) {
