@@ -5,6 +5,9 @@ import '../theme/app_theme.dart';
 // ============================================================
 // soft_bottom_nav.dart — Navbar bawah reusable
 //   Dipakai di semua role (admin/dosen/mahasiswa) biar konsisten.
+//   Desain:
+//   - Tidak aktif: icon + label teks di bawahnya
+//   - Aktif: icon di dalam lingkaran hitam bulat (tanpa label)
 //   Selalu center (margin kiri-kanan sama) — lihat Padding di bawah.
 // ============================================================
 
@@ -14,18 +17,10 @@ class SoftNavItem {
   const SoftNavItem({required this.icon, required this.label});
 }
 
-/// Gaya tab aktif:
-/// - [dot]: icon (+ label opsional) berwarna navy, dot kecil di bawahnya
-/// - [solidCircle]: tab aktif jadi lingkaran solid navy tanpa label,
-///   tab non-aktif tetap tampil icon + label
-enum SoftNavActiveStyle { dot, solidCircle }
-
 class SoftBottomNav extends StatelessWidget {
   final List<SoftNavItem> items;
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final bool showLabels;
-  final SoftNavActiveStyle activeStyle;
   final IconData? centerActionIcon;
   final VoidCallback? centerActionOnTap;
 
@@ -34,8 +29,6 @@ class SoftBottomNav extends StatelessWidget {
     required this.items,
     required this.currentIndex,
     required this.onTap,
-    this.showLabels = false,
-    this.activeStyle = SoftNavActiveStyle.dot,
     this.centerActionIcon,
     this.centerActionOnTap,
   });
@@ -48,18 +41,18 @@ class SoftBottomNav extends StatelessWidget {
     final rightItems = hasCenter ? items.sublist(half) : const <SoftNavItem>[];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: SizedBox(
-        height: hasCenter ? 76 : 64,
+        height: hasCenter ? 76 : 70,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
           children: [
             Container(
-              height: 64,
+              height: 70,
               decoration: BoxDecoration(
                 color: AppColorsSoft.cardWhite,
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(35),
                 boxShadow: [
                   BoxShadow(
                     color: AppColorsSoft.navy.withOpacity(0.10),
@@ -119,60 +112,61 @@ class SoftBottomNav extends StatelessWidget {
   Widget _buildItem(int index, SoftNavItem item) {
     final selected = index == currentIndex;
 
-    if (selected && activeStyle == SoftNavActiveStyle.solidCircle) {
-      return InkWell(
-        onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(32),
-        child: Center(
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: AppColorsSoft.navy,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(item.icon, size: 20, color: Colors.white),
-          ),
-        ),
-      );
-    }
-
-    final color = selected ? AppColorsSoft.navy : AppColorsSoft.textGrayLight;
-
     return InkWell(
       onTap: () => onTap(index),
-      borderRadius: BorderRadius.circular(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(item.icon, size: 22, color: color),
-          if (showLabels) ...[
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                color: color,
-                letterSpacing: 0.2,
-              ),
+      borderRadius: BorderRadius.circular(35),
+      child: SizedBox(
+        height: 70,
+        child: Center(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
             ),
-          ],
-          if (selected &&
-              showLabels &&
-              activeStyle == SoftNavActiveStyle.dot) ...[
-            const SizedBox(height: 2),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: AppColorsSoft.navy,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
-        ],
+            child: selected ? _buildActiveItem(item) : _buildInactiveItem(item),
+          ),
+        ),
       ),
+    );
+  }
+
+  /// Aktif: icon di dalam lingkaran hitam, tanpa label
+  Widget _buildActiveItem(SoftNavItem item) {
+    return Container(
+      key: const ValueKey('active'),
+      width: 46,
+      height: 46,
+      decoration: const BoxDecoration(
+        color: AppColorsSoft.navy,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(item.icon, size: 22, color: Colors.white),
+    );
+  }
+
+  /// Tidak aktif: icon + label teks di bawahnya
+  Widget _buildInactiveItem(SoftNavItem item) {
+    return Column(
+      key: const ValueKey('inactive'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(item.icon, size: 22, color: AppColorsSoft.textGrayLight),
+        const SizedBox(height: 4),
+        Text(
+          item.label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColorsSoft.textGrayLight,
+            letterSpacing: 0.2,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

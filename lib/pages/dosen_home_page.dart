@@ -5,6 +5,7 @@ import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../widgets/soft_bottom_nav.dart';
+import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 
 // ============================================================
@@ -169,28 +170,7 @@ class _DosenHomePageState extends State<DosenHomePage> {
   }
 
   Future<void> _logout() async {
-    final konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar dari Portal'),
-        content: const Text('Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColorsSoft.navy,
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-
+    final konfirmasi = await showLogoutDialog(context);
     if (konfirmasi != true) return;
 
     await AuthService.logout();
@@ -296,6 +276,15 @@ class _DosenHomePageState extends State<DosenHomePage> {
           icon: const Icon(
             Icons.notifications_none_rounded,
             color: AppColorsSoft.navy,
+          ),
+        ),
+        IconButton(
+          onPressed: _logout,
+          tooltip: 'Logout',
+          icon: const Icon(
+            Icons.logout_rounded,
+            color: Color(0xFFE05252),
+            size: 22,
           ),
         ),
       ],
