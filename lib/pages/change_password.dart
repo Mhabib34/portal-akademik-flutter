@@ -7,8 +7,9 @@ import 'home_router.dart';
 
 // ============================================================
 // change_password.dart
-// Halaman ganti password — WAJIB saat pertama login
-// Tidak bisa di-back (PopScope)
+// Halaman ganti password.
+// - isForced=true  → WAJIB saat pertama login (tidak bisa back)
+// - isForced=false → dari profil (bisa back, pop setelah sukses)
 // Desain selaras dengan tema soft-pastel portal akademik
 // ============================================================
 
@@ -19,6 +20,10 @@ class ChangePasswordPage extends StatefulWidget {
   final String role;
   final String nim;
 
+  /// true = first login (wajib, tidak bisa back)
+  /// false = dari profil (bisa back)
+  final bool isForced;
+
   const ChangePasswordPage({
     super.key,
     required this.userId,
@@ -26,6 +31,7 @@ class ChangePasswordPage extends StatefulWidget {
     required this.username,
     required this.role,
     required this.nim,
+    this.isForced = true,
   });
 
   @override
@@ -129,24 +135,35 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      _showSnack('Password berhasil diubah! Selamat datang.');
+      if (widget.isForced) {
+        // Mode first-login: arahkan ke home
+        _showSnack('Password berhasil diubah! Selamat datang.');
 
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => buildHomePageForRole(
-            role: widget.role,
-            userId: widget.userId,
-            nama: widget.nama,
-            username: widget.username,
-            nim: widget.nim,
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => buildHomePageForRole(
+              role: widget.role,
+              userId: widget.userId,
+              nama: widget.nama,
+              username: widget.username,
+              nim: widget.nim,
+            ),
           ),
-        ),
-        (route) => false,
-      );
+          (route) => false,
+        );
+      } else {
+        // Mode dari profil: cukup pop kembali
+        _showSnack('Password berhasil diubah!');
+
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+
+        Navigator.pop(context);
+      }
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -175,10 +192,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
   // ----------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    final isForced = widget.isForced;
+
     return PopScope(
-      canPop: false,
+      canPop: !isForced,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
+        if (!didPop && isForced) {
           _showSnack(
             'Anda harus mengubah password terlebih dahulu.',
             isError: true,
@@ -190,10 +209,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
           decoration:
               BoxDecoration(gradient: AppColorsSoft.backgroundGradient),
           child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 child: FadeTransition(
                   opacity: _fadeAnim,
                   child: SlideTransition(
@@ -234,10 +255,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Demi keamanan akun Anda, silakan buat\npassword baru untuk melanjutkan.',
+                          Text(
+                            isForced
+                                ? 'Demi keamanan akun Anda, silakan buat\npassword baru untuk melanjutkan.'
+                                : 'Ubah password Anda untuk\nmenjaga keamanan akun.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               color: AppColorsSoft.textGray,
                               height: 1.5,
@@ -245,44 +268,46 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
                           ),
                           const SizedBox(height: 28),
 
-                          // --- Info Banner ---
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF8E1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFECB3),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.info_outline_rounded,
-                                    color: Color(0xFFE08A00),
-                                    size: 18,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Expanded(
-                                  child: Text(
-                                    'Login pertama terdeteksi. Anda wajib mengganti password default sebelum mengakses portal.',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF7A5A00),
-                                      height: 1.45,
+                          // --- Info Banner (hanya untuk first login) ---
+                          if (isForced) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF8E1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFECB3),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.info_outline_rounded,
+                                      color: Color(0xFFE08A00),
+                                      size: 18,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 10),
+                                  const Expanded(
+                                    child: Text(
+                                      'Login pertama terdeteksi. Anda wajib mengganti password default sebelum mengakses portal.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF7A5A00),
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 20),
+                          ],
 
                           // --- Form Card ---
                           Container(
@@ -456,6 +481,21 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
                   ),
                 ),
               ),
+            ),
+              // --- Tombol back (hanya mode dari profil) ---
+              if (!isForced)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColorsSoft.navy,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

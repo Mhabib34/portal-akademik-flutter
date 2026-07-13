@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../widgets/soft_bottom_nav.dart';
 import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
+import 'mahasiswa_profil_page.dart';
 
 // ============================================================
 // mahasiswa_home_page.dart — Dashboard Mahasiswa
@@ -240,7 +241,17 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
       return;
     }
     if (index == 3) {
-      _logout();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MahasiswaProfilPage(
+            userId: widget.userId,
+            nama: widget.nama,
+            username: widget.username,
+            nim: widget.nim,
+          ),
+        ),
+      );
       return;
     }
     _handlePlaceholder(['Beranda', 'Jadwal', 'Nilai', 'Profil'][index]);
