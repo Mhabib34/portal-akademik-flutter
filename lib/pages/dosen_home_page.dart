@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
-import '../widgets/soft_bottom_nav.dart';
+import '../widgets/dosen_nav_helper.dart';
 import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 
@@ -52,12 +52,7 @@ class _DosenHomePageState extends State<DosenHomePage> {
   int _totalMahasiswa = 0;
   List<Map<String, dynamic>> _jadwalHariIni = [];
 
-  final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
-    SoftNavItem(icon: Icons.star_rounded, label: 'Nilai'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
+
 
   @override
   void initState() {
@@ -183,17 +178,6 @@ class _DosenHomePageState extends State<DosenHomePage> {
     );
   }
 
-  void _onNavTap(int index) {
-    if (index == 0) {
-      setState(() => _navIndex = 0);
-      return;
-    }
-    if (index == 3) {
-      _logout();
-      return;
-    }
-    _handlePlaceholder(_navItems[index].label);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,10 +218,11 @@ class _DosenHomePageState extends State<DosenHomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: SoftBottomNav(
-        items: _navItems,
+      bottomNavigationBar: DosenNavHelper.buildNav(
+        context: context,
         currentIndex: _navIndex,
-        onTap: _onNavTap,
+        onLogout: _logout,
+        onBerandaTap: () => setState(() => _navIndex = 0),
       ),
     );
   }

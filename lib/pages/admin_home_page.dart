@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
-import '../widgets/soft_bottom_nav.dart';
+import '../widgets/admin_nav_helper.dart';
 import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 import 'data_dosen_page.dart';
@@ -15,6 +15,7 @@ import 'data_kelas_page.dart';
 import 'data_ruang_page.dart';
 import 'penjadwalan_page.dart';
 import 'fakultas_prodi_hub_page.dart';
+import 'admin_krs_page.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -45,12 +46,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   String _totalMataKuliah = '-';
   String _krsMenunggu = '-';
 
-  final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
-    SoftNavItem(icon: Icons.storage_rounded, label: 'Data'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
+
 
   @override
   void initState() {
@@ -116,26 +112,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  void _onNavTap(int index) {
-    if (index == 0) {
-      setState(() => _navIndex = 0);
-      return;
-    }
-    if (index == 3) {
-      _logout();
-      return;
-    }
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FakultasProdiHubPage(nama: widget.nama),
-        ),
-      );
-      return;
-    }
-    _handlePlaceholder(_navItems[index].label);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,10 +141,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: SoftBottomNav(
-        items: _navItems,
+      bottomNavigationBar: AdminNavHelper.buildNav(
+        context: context,
         currentIndex: _navIndex,
-        onTap: _onNavTap,
+        onLogout: _logout,
+        nama: widget.nama,
+        onBerandaTap: () => setState(() => _navIndex = 0),
       ),
     );
   }
@@ -380,7 +358,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         'Persetujuan KRS',
         const Color(0xFFFFE0E0),
         const Color(0xFFE05252),
-        onTap: () => _handlePlaceholder('Persetujuan KRS'),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminKrsPage()),
+        ),
       ),
       _MenuData(
         Icons.star_rounded,

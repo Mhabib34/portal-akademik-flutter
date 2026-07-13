@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/admin_nav_helper.dart';
 
 import '../theme/app_theme.dart';
 import '../config/api_config.dart';
@@ -457,6 +458,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: AdminNavHelper.buildNav(context: context, currentIndex: -1),
       body: Container(
         decoration: BoxDecoration(gradient: AppColorsSoft.backgroundGradient),
         child: SafeArea(

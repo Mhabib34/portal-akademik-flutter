@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/admin_nav_helper.dart';
 
 import '../theme/app_theme.dart';
 import '../config/api_config.dart';
@@ -598,6 +599,7 @@ class _PenjadwalanPageState extends State<PenjadwalanPage> {
     final list = _filteredJadwal;
 
     return Scaffold(
+      bottomNavigationBar: AdminNavHelper.buildNav(context: context, currentIndex: 1),
       body: Container(
         decoration: BoxDecoration(gradient: AppColorsSoft.backgroundGradient),
         child: SafeArea(

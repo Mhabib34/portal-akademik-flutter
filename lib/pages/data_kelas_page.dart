@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/admin_nav_helper.dart';
 
 import '../theme/app_theme.dart';
 import '../config/api_config.dart';
@@ -419,6 +420,7 @@ class _DataKelasPageState extends State<DataKelasPage> {
   Widget build(BuildContext context) {
     final list = _filteredKelas;
     return Scaffold(
+      bottomNavigationBar: AdminNavHelper.buildNav(context: context, currentIndex: -1),
       body: Container(
         decoration: BoxDecoration(gradient: AppColorsSoft.backgroundGradient),
         child: SafeArea(
