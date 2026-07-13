@@ -172,11 +172,12 @@ class _DataMataKuliahPageState extends State<DataMataKuliahPage> {
         existing?['prodi_id']?.toString() ?? _prodiList.first.id;
     bool saving = false;
 
-    await showDialog(
+    await showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (builderCtx, setLocal) {
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (builderCtx, setSheetState) {
           Future<void> submit() async {
             if (kodeCtrl.text.trim().isEmpty ||
                 namaCtrl.text.trim().isEmpty ||
@@ -189,7 +190,7 @@ class _DataMataKuliahPageState extends State<DataMataKuliahPage> {
               );
               return;
             }
-            setLocal(() => saving = true);
+            setSheetState(() => saving = true);
             try {
               final body = {
                 'kode_mk': kodeCtrl.text.trim(),
@@ -205,7 +206,7 @@ class _DataMataKuliahPageState extends State<DataMataKuliahPage> {
                   : ApiConfig.updateMataKuliah;
               final data = await ApiClient.postForm(url, body: body);
               if (data['status'] == 'ok') {
-                if (mounted) Navigator.pop(dialogCtx);
+                if (mounted) Navigator.pop(sheetCtx);
                 _showSnackBar(
                   existing == null
                       ? 'Mata kuliah berhasil ditambahkan'
@@ -213,139 +214,221 @@ class _DataMataKuliahPageState extends State<DataMataKuliahPage> {
                 );
                 _loadData();
               } else {
-                setLocal(() => saving = false);
+                setSheetState(() => saving = false);
                 _showSnackBar(
                   data['message']?.toString() ?? 'Gagal menyimpan data',
                   isError: true,
                 );
               }
             } catch (_) {
-              setLocal(() => saving = false);
+              setSheetState(() => saving = false);
               _showSnackBar('Koneksi gagal', isError: true);
             }
           }
 
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(builderCtx).viewInsets.bottom,
             ),
-            title: Text(
-              existing == null ? 'Tambah Mata Kuliah' : 'Edit Mata Kuliah',
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: kodeCtrl,
-                    decoration: AppColorsSoft.fieldDecoration(
-                      hint: 'Kode MK (mis. IF101)',
-                      prefixIcon: Icons.tag_rounded,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: namaCtrl,
-                    decoration: AppColorsSoft.fieldDecoration(
-                      hint: 'Nama Mata Kuliah',
-                      prefixIcon: Icons.menu_book_rounded,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: sksCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: AppColorsSoft.fieldDecoration(
-                            hint: 'SKS',
-                            prefixIcon: Icons.numbers_rounded,
-                          ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              decoration: const BoxDecoration(
+                color: AppColorsSoft.cardWhite,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: AppColorsSoft.fieldFill,
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: semesterCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: AppColorsSoft.fieldDecoration(
-                            hint: 'Semester ke',
-                            prefixIcon: Icons.calendar_view_month_rounded,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  InputDecorator(
-                    decoration: AppColorsSoft.fieldDecoration(
-                      hint: 'Pilih Prodi',
-                      prefixIcon: Icons.school_rounded,
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: selectedProdiId,
-                        isDense: true,
-                        items: _prodiList
-                            .map(
-                              (p) => DropdownMenuItem(
-                                value: p.id,
-                                child: Text(
-                                  p.namaProdi,
-                                  overflow: TextOverflow.ellipsis,
+                    Text(
+                      existing == null ? 'Tambah Mata Kuliah' : 'Edit Mata Kuliah',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColorsSoft.navy,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _formLabel('Kode Mata Kuliah'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: kodeCtrl,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'Kode MK (mis. IF101)',
+                        prefixIcon: Icons.tag_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel('Nama Mata Kuliah'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: namaCtrl,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'Nama Mata Kuliah',
+                        prefixIcon: Icons.menu_book_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _formLabel('SKS'),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: sksCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: AppColorsSoft.fieldDecoration(
+                                  hint: 'SKS',
+                                  prefixIcon: Icons.numbers_rounded,
                                 ),
                               ),
-                            )
-                            .toList(),
-                        onChanged: (v) => setLocal(() => selectedProdiId = v),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _formLabel('Semester Ke-'),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: semesterCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: AppColorsSoft.fieldDecoration(
+                                  hint: 'Semester',
+                                  prefixIcon: Icons.calendar_view_month_rounded,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _formLabel('Program Studi'),
+                    const SizedBox(height: 8),
+                    InputDecorator(
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'Pilih Prodi',
+                        prefixIcon: Icons.school_rounded,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: selectedProdiId,
+                          isDense: true,
+                          items: _prodiList
+                              .map(
+                                (p) => DropdownMenuItem(
+                                  value: p.id,
+                                  child: Text(
+                                    p.namaProdi,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setSheetState(() => selectedProdiId = v),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: deskripsiCtrl,
-                    maxLines: 3,
-                    decoration: AppColorsSoft.fieldDecoration(
-                      hint: 'Deskripsi (opsional)',
-                      prefixIcon: Icons.notes_rounded,
+                    const SizedBox(height: 16),
+                    _formLabel('Deskripsi'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: deskripsiCtrl,
+                      maxLines: 3,
+                      decoration: AppColorsSoft.fieldDecoration(
+                        hint: 'Deskripsi (opsional)',
+                        prefixIcon: Icons.notes_rounded,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed:
+                                saving ? null : () => Navigator.pop(sheetCtx),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: AppColorsSoft.textGray,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: saving ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColorsSoft.navy,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(26),
+                              ),
+                            ),
+                            child: saving
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Simpan',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: saving ? null : () => Navigator.pop(dialogCtx),
-                child: const Text('Batal'),
-              ),
-              ElevatedButton(
-                onPressed: saving ? null : submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColorsSoft.navy,
-                  minimumSize: const Size(90, 42),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: saving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Simpan'),
-              ),
-            ],
           );
         },
       ),
     );
   }
+
+  Widget _formLabel(String text) => Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          color: AppColorsSoft.navy,
+        ),
+      );
 
   Future<void> _deleteMataKuliah(Map<String, dynamic> mk) async {
     final konfirmasi = await showDialog<bool>(
