@@ -9,7 +9,7 @@ import 'login_page.dart';
 import 'data_dosen_page.dart';
 import 'data_mahasiswa_page.dart';
 import 'manajemen_user_page.dart';
-import 'fakultas_prodi_hub_page.dart';
+import 'data_mata_kuliah_page.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -41,10 +41,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
   String _krsMenunggu = '-';
 
   final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Home'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Schedule'),
+    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
+    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
     SoftNavItem(icon: Icons.storage_rounded, label: 'Data'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profile'),
+    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
   ];
 
   @override
@@ -137,15 +137,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
       setState(() => _navIndex = 0);
       return;
     }
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FakultasProdiHubPage(nama: widget.nama),
-        ),
-      );
-      return;
-    }
     if (index == 3) {
       _logout();
       return;
@@ -185,8 +176,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
         items: _navItems,
         currentIndex: _navIndex,
         onTap: _onNavTap,
-        showLabels: true,
-        activeStyle: SoftNavActiveStyle.solidCircle,
       ),
     );
   }
@@ -348,7 +337,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         'Data Mata Kuliah',
         const Color(0xFFFFE8CC),
         const Color(0xFFE08A00),
-        onTap: () => _handlePlaceholder('Data Mata Kuliah'),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DataMataKuliahPage()),
+        ),
       ),
       _MenuData(
         Icons.event_note_rounded,
@@ -382,16 +374,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
         ),
       ),
       _MenuData(
-        Icons.account_balance_rounded,
-        'Fakultas & Prodi',
-        const Color(0xFFE3E8EF),
-        const Color(0xFF5B6B7D),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => FakultasProdiHubPage(nama: widget.nama),
-          ),
-        ),
+        Icons.more_horiz_rounded,
+        'Lainnya',
+        const Color(0xFFE9E9EF),
+        const Color(0xFF6B7280),
+        onTap: () => _handlePlaceholder('Lainnya'),
       ),
     ];
 
