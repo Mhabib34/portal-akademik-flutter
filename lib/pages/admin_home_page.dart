@@ -5,11 +5,14 @@ import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../widgets/soft_bottom_nav.dart';
+import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 import 'data_dosen_page.dart';
 import 'data_mahasiswa_page.dart';
 import 'manajemen_user_page.dart';
 import 'data_mata_kuliah_page.dart';
+import 'penjadwalan_page.dart';
+import 'fakultas_prodi_hub_page.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -98,28 +101,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
   Future<void> _logout() async {
-    final konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar dari Portal'),
-        content: const Text('Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColorsSoft.navy,
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-
+    final konfirmasi = await showLogoutDialog(context);
     if (konfirmasi != true) return;
 
     await AuthService.logout();
@@ -139,6 +121,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
     }
     if (index == 3) {
       _logout();
+      return;
+    }
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => FakultasProdiHubPage(nama: widget.nama),
+        ),
+      );
       return;
     }
     _handlePlaceholder(_navItems[index].label);
@@ -211,6 +202,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        IconButton(
+          onPressed: _logout,
+          tooltip: 'Logout',
+          icon: const Icon(
+            Icons.logout_rounded,
+            color: Color(0xFFE05252),
+            size: 22,
           ),
         ),
       ],
@@ -347,7 +348,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         'Penjadwalan',
         const Color(0xFFD9F5E4),
         const Color(0xFF12A150),
-        onTap: () => _handlePlaceholder('Penjadwalan'),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PenjadwalanPage()),
+        ),
       ),
       _MenuData(
         Icons.fact_check_rounded,
@@ -374,11 +378,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
         ),
       ),
       _MenuData(
-        Icons.more_horiz_rounded,
-        'Lainnya',
-        const Color(0xFFE9E9EF),
-        const Color(0xFF6B7280),
-        onTap: () => _handlePlaceholder('Lainnya'),
+        Icons.account_balance_rounded,
+        'Fakultas & Prodi',
+        const Color(0xFFFCE8D6),
+        const Color(0xFFB5651D),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FakultasProdiHubPage(nama: widget.nama),
+          ),
+        ),
       ),
     ];
 

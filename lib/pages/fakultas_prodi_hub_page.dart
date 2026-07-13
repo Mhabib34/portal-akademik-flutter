@@ -115,8 +115,6 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
         items: _navItems,
         currentIndex: _navIndex,
         onTap: _onNavTap,
-        showLabels: true,
-        activeStyle: SoftNavActiveStyle.solidCircle,
       ),
     );
   }

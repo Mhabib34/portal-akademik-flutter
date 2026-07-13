@@ -4,6 +4,8 @@ import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../widgets/soft_bottom_nav.dart';
+import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 
 // ============================================================
@@ -81,6 +83,13 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
   Color _krsColor = AppColorsSoft.textGray;
 
   List<Map<String, dynamic>> _jadwalHariIni = [];
+
+  final List<SoftNavItem> _navItems = const [
+    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
+    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
+    SoftNavItem(icon: Icons.school_rounded, label: 'Nilai'),
+    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
+  ];
 
   String? get _hariIni {
     final weekday = DateTime.now().weekday;
@@ -212,28 +221,7 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
   }
 
   Future<void> _logout() async {
-    final konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar dari Portal'),
-        content: const Text('Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColorsSoft.navy,
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-
+    final konfirmasi = await showLogoutDialog(context);
     if (konfirmasi != true) return;
 
     await AuthService.logout();
@@ -515,7 +503,13 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
                 ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: SoftBottomNav(
+        items: _navItems,
+        currentIndex: _navIndex,
+        onTap: _onNavTap,
+        centerActionIcon: Icons.add_rounded,
+        centerActionOnTap: _openAjukanKrsSheet,
+      ),
     );
   }
 
@@ -553,6 +547,15 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
           icon: const Icon(
             Icons.notifications_none_rounded,
             color: AppColorsSoft.navy,
+          ),
+        ),
+        IconButton(
+          onPressed: _logout,
+          tooltip: 'Logout',
+          icon: const Icon(
+            Icons.logout_rounded,
+            color: Color(0xFFE05252),
+            size: 22,
           ),
         ),
       ],
@@ -910,113 +913,6 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
     );
   }
 
-  Widget _buildBottomNav() {
-    final items = [
-      (Icons.home_rounded, 'Home'),
-      (Icons.calendar_month_rounded, 'Schedule'),
-      (Icons.school_rounded, 'Grades'),
-      (Icons.person_rounded, 'Profile'),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: SizedBox(
-        height: 76,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColorsSoft.cardWhite,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColorsSoft.navy.withOpacity(0.10),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _navItem(items[0], 0),
-                    _navItem(items[1], 1),
-                    const SizedBox(width: 48),
-                    _navItem(items[2], 2),
-                    _navItem(items[3], 3),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: 0,
-              child: GestureDetector(
-                onTap: _openAjukanKrsSheet,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppColorsSoft.navy,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColorsSoft.navy.withOpacity(0.3),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem((IconData, String) item, int index) {
-    final selected = index == _navIndex;
-    return Expanded(
-      child: InkWell(
-        onTap: () => _onNavTap(index),
-        borderRadius: BorderRadius.circular(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColorsSoft.navy.withOpacity(0.08)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                item.$1,
-                size: 20,
-                color: selected
-                    ? AppColorsSoft.navy
-                    : AppColorsSoft.textGrayLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _MenuData {
