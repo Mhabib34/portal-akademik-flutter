@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
-import '../widgets/soft_bottom_nav.dart';
+import '../widgets/admin_nav_helper.dart';
 import 'data_fakultas_page.dart';
 import 'data_prodi_page.dart';
 
@@ -22,32 +22,6 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
   // index 2 ("Data") aktif karena kita lagi di halaman manajemen data
   final int _navIndex = 2;
 
-  final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
-    SoftNavItem(icon: Icons.storage_rounded, label: 'Data'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
-
-  void _handlePlaceholder(String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  void _onNavTap(int index) {
-    if (index == 0) {
-      Navigator.popUntil(context, (route) => route.isFirst);
-      return;
-    }
-    if (index == 2) return; // sudah di halaman Data
-    _handlePlaceholder(_navItems[index].label);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,10 +85,10 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
           ),
         ),
       ),
-      bottomNavigationBar: SoftBottomNav(
-        items: _navItems,
+      bottomNavigationBar: AdminNavHelper.buildNav(
+        context: context,
         currentIndex: _navIndex,
-        onTap: _onNavTap,
+        nama: widget.nama,
       ),
     );
   }

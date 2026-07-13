@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
-import '../widgets/soft_bottom_nav.dart';
+import '../widgets/mahasiswa_nav_helper.dart';
 import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
 import 'change_password.dart';
@@ -43,12 +43,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   String _namaProdi = '-';
   String _alamat = '-';
 
-  final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
-    SoftNavItem(icon: Icons.school_rounded, label: 'Nilai'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
+
 
   @override
   void initState() {
@@ -126,14 +121,6 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     );
   }
 
-  void _onNavTap(int index) {
-    if (index == 3) return; // sudah di profil
-    if (index == 0) {
-      Navigator.pop(context);
-      return;
-    }
-    _handlePlaceholder(_navItems[index].label);
-  }
 
   void _openChangePassword() {
     Navigator.push(
@@ -179,12 +166,13 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
                 ),
         ),
       ),
-      bottomNavigationBar: SoftBottomNav(
-        items: _navItems,
+      bottomNavigationBar: MahasiswaNavHelper.buildNav(
+        context: context,
         currentIndex: _navIndex,
-        onTap: _onNavTap,
-        centerActionIcon: Icons.add_rounded,
-        centerActionOnTap: () => _handlePlaceholder('Ajukan KRS'),
+        userId: widget.userId,
+        nama: widget.nama,
+        username: widget.username,
+        nim: widget.nim,
       ),
     );
   }

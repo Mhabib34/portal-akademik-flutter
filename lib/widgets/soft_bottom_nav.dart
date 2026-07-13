@@ -76,14 +76,18 @@ class SoftBottomNav extends StatelessWidget {
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOutCubic,
-                        left: leftPosition,
+                        left: currentIndex == -1 ? -100 : leftPosition,
                         top: (70 - 46) / 2,
-                        child: Container(
-                          width: 46,
-                          height: 46,
-                          decoration: const BoxDecoration(
-                            color: AppColorsSoft.navy,
-                            shape: BoxShape.circle,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: currentIndex == -1 ? 0.0 : 1.0,
+                          child: Container(
+                            width: 46,
+                            height: 46,
+                            decoration: const BoxDecoration(
+                              color: AppColorsSoft.navy,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),

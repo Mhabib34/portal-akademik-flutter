@@ -4,10 +4,9 @@ import '../theme/app_theme.dart';
 import '../config/api_config.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
-import '../widgets/soft_bottom_nav.dart';
+import '../widgets/mahasiswa_nav_helper.dart';
 import '../widgets/logout_dialog.dart';
 import 'login_page.dart';
-import 'mahasiswa_profil_page.dart';
 
 // ============================================================
 // mahasiswa_home_page.dart — Dashboard Mahasiswa
@@ -85,12 +84,7 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
 
   List<Map<String, dynamic>> _jadwalHariIni = [];
 
-  final List<SoftNavItem> _navItems = const [
-    SoftNavItem(icon: Icons.home_rounded, label: 'Beranda'),
-    SoftNavItem(icon: Icons.calendar_month_rounded, label: 'Jadwal'),
-    SoftNavItem(icon: Icons.school_rounded, label: 'Nilai'),
-    SoftNavItem(icon: Icons.person_rounded, label: 'Profil'),
-  ];
+
 
   String? get _hariIni {
     final weekday = DateTime.now().weekday;
@@ -235,27 +229,7 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
     );
   }
 
-  void _onNavTap(int index) {
-    if (index == 0) {
-      setState(() => _navIndex = 0);
-      return;
-    }
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MahasiswaProfilPage(
-            userId: widget.userId,
-            nama: widget.nama,
-            username: widget.username,
-            nim: widget.nim,
-          ),
-        ),
-      );
-      return;
-    }
-    _handlePlaceholder(['Beranda', 'Jadwal', 'Nilai', 'Profil'][index]);
-  }
+
 
   // ---------------- Ajukan KRS (FAB tengah) ----------------
   Future<void> _openAjukanKrsSheet() async {
@@ -514,12 +488,15 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
                 ),
         ),
       ),
-      bottomNavigationBar: SoftBottomNav(
-        items: _navItems,
+      bottomNavigationBar: MahasiswaNavHelper.buildNav(
+        context: context,
         currentIndex: _navIndex,
-        onTap: _onNavTap,
-        centerActionIcon: Icons.add_rounded,
+        userId: widget.userId,
+        nama: widget.nama,
+        username: widget.username,
+        nim: widget.nim,
         centerActionOnTap: _openAjukanKrsSheet,
+        onBerandaTap: () => setState(() => _navIndex = 0),
       ),
     );
   }
