@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
+import 'dosen_input_nilai_page.dart';
 
 // ============================================================
 // dosen_home_page.dart — Dashboard Dosen
@@ -455,7 +456,21 @@ class _DosenHomePageState extends State<DosenHomePage> {
       children: menu
           .map(
             (m) => InkWell(
-              onTap: () => _handlePlaceholder(m.label),
+              onTap: () {
+                if (m.label == 'Input Nilai') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DosenInputNilaiPage(
+                        dosenId: _dosenId,
+                        nama: widget.nama,
+                      ),
+                    ),
+                  );
+                } else {
+                  _handlePlaceholder(m.label);
+                }
+              },
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding: const EdgeInsets.all(14),
