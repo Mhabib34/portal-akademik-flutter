@@ -315,7 +315,16 @@ components:
         tugas:
           type: number
           format: float
+        quiz_1:
+          type: number
+          format: float
+        quiz_2:
+          type: number
+          format: float
         uts:
+          type: number
+          format: float
+        kehadiran:
           type: number
           format: float
         uas:

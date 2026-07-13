@@ -3,8 +3,8 @@
 // ============================================================
 
 import '../config/api_config.dart';
-import 'api_client.dart';
-import 'token_service.dart';
+import './api_client.dart';
+import './token_service.dart';
 
 class AuthService {
   AuthService._();

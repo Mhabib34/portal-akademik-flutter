@@ -8,7 +8,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import 'token_service.dart';
+import './token_service.dart';
 
 class ApiException implements Exception {
   final String message;
