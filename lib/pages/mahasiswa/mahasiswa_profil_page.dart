@@ -8,6 +8,7 @@ import '../../widgets/mahasiswa_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import '../auth/change_password.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // mahasiswa_profil_page.dart — Halaman Profil Mahasiswa
@@ -97,14 +98,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   }
 
   void _handlePlaceholder(String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   Future<void> _logout() async {

@@ -26,12 +26,15 @@ $tahunAjaranId = $tahunAktif->fetch_assoc()['id'];
 $sql = "SELECT k.id, k.mata_kuliah_id, mk.kode_mk, mk.nama_mk, mk.sks,
                k.tahun_ajaran_id, k.dosen_id, d.nama AS nama_dosen,
                k.nama_kelas, k.kapasitas,
+               j.hari, j.jam_mulai, j.jam_selesai, r.nama_ruang,
                (SELECT COUNT(*) FROM krs_detail kd
                   JOIN krs ON krs.id = kd.krs_id
                   WHERE kd.kelas_id = k.id AND krs.status = 'disetujui') AS jumlah_terisi
         FROM kelas k
         JOIN mata_kuliah mk ON mk.id = k.mata_kuliah_id
         JOIN dosen d ON d.id = k.dosen_id
+        LEFT JOIN jadwal j ON j.kelas_id = k.id
+        LEFT JOIN ruang r ON r.id = j.ruang_id
         WHERE k.tahun_ajaran_id = ?
         HAVING jumlah_terisi < kapasitas
         ORDER BY mk.nama_mk ASC, k.nama_kelas ASC";
@@ -54,7 +57,11 @@ while ($row = $result->fetch_assoc()) {
         'nama_dosen'      => $row['nama_dosen'],
         'nama_kelas'      => $row['nama_kelas'],
         'kapasitas'       => (int)$row['kapasitas'],
-        'jumlah_terisi'   => (int)$row['jumlah_terisi']
+        'jumlah_terisi'   => (int)$row['jumlah_terisi'],
+        'hari'            => $row['hari'],
+        'jam_mulai'       => $row['jam_mulai'] ? substr($row['jam_mulai'], 0, 5) : null,
+        'jam_selesai'     => $row['jam_selesai'] ? substr($row['jam_selesai'], 0, 5) : null,
+        'nama_ruang'      => $row['nama_ruang']
     ];
 }
 

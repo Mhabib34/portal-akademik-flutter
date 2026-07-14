@@ -5,6 +5,7 @@ import '../../../theme/app_theme.dart';
 import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
 import '../../../models/prodi_model.dart';
+import '../../../utils/app_toast.dart';
 
 // ============================================================
 // data_mahasiswa_page.dart — Manajemen Data Mahasiswa (Admin)
@@ -71,12 +72,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal memuat data mahasiswa'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.show(context, 'Gagal memuat data mahasiswa', isError: true);
       }
     }
 
@@ -84,14 +80,7 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   }
 
   void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, message, isError: isError);
   }
 
   // ---------------- Toggle status Aktif/Nonaktif ----------------

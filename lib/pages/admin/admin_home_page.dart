@@ -17,6 +17,7 @@ import './penjadwalan_page.dart';
 import './fakultas_prodi_hub_page.dart';
 import './admin_krs_page.dart';
 import './admin_overview_nilai_page.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // admin_home_page.dart — Dashboard Admin
@@ -89,14 +90,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
   void _handlePlaceholder(String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   Future<void> _logout() async {

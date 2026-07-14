@@ -4,6 +4,7 @@ import '../../../widgets/admin_nav_helper.dart';
 import '../../../theme/app_theme.dart';
 import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
+import '../../../utils/app_toast.dart';
 
 // ============================================================
 // data_dosen_page.dart — Manajemen Data Dosen (Admin)
@@ -79,12 +80,7 @@ class _DataDosenPageState extends State<DataDosenPage> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal memuat data dosen'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.show(context, 'Gagal memuat data dosen', isError: true);
       }
     }
 
@@ -92,14 +88,7 @@ class _DataDosenPageState extends State<DataDosenPage> {
   }
 
   void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, message, isError: isError);
   }
 
   // ---------------- Toggle status Aktif/Cuti ----------------

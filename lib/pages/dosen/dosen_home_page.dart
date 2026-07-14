@@ -8,6 +8,7 @@ import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import 'dosen_input_nilai_page.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // dosen_home_page.dart — Dashboard Dosen
@@ -155,14 +156,7 @@ class _DosenHomePageState extends State<DosenHomePage> {
   }
 
   void _handlePlaceholder(String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   Future<void> _logout() async {

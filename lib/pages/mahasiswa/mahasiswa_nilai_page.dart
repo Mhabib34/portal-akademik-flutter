@@ -7,6 +7,8 @@ import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/mahasiswa_nav_helper.dart';
+import '../../widgets/ajukan_krs_bottom_sheet.dart';
+import '../../utils/app_toast.dart';
 
 class MahasiswaNilaiPage extends StatefulWidget {
   final String userId;
@@ -94,15 +96,7 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
   }
 
   void _showSnackBar(String msg, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   Future<void> _cetakKhs() async {
@@ -269,9 +263,7 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
         nama: widget.nama,
         username: widget.username,
         nim: widget.nim,
-        centerActionOnTap: () {
-          _showSnackBar('Pindah ke beranda untuk Ajukan KRS');
-        },
+        centerActionOnTap: () => AjukanKrsBottomSheet.show(context),
       ),
     );
   }

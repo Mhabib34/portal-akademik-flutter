@@ -217,6 +217,18 @@ components:
         jumlah_terisi:
           type: integer
           description: jumlah mahasiswa yang sudah KRS di kelas ini (disetujui)
+        hari:
+          type: string
+          nullable: true
+        jam_mulai:
+          type: string
+          nullable: true
+        jam_selesai:
+          type: string
+          nullable: true
+        nama_ruang:
+          type: string
+          nullable: true
 
     # ---------------- Jadwal ----------------
     Jadwal:

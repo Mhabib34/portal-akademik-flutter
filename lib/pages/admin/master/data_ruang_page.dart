@@ -5,6 +5,7 @@ import '../../../theme/app_theme.dart';
 import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
 import '../../../models/ruang_model.dart';
+import '../../../utils/app_toast.dart';
 
 const List<Map<String, dynamic>> _iconPalette = [
   {
@@ -103,15 +104,7 @@ class _DataRuangPageState extends State<DataRuangPage> {
   }
 
   void _showSnackBar(String msg, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   // Membuka form tambah/edit. Konten form sengaja dipisah ke widget
@@ -469,14 +462,7 @@ class _RuangFormSheetState extends State<_RuangFormSheet> {
 
   void _showLocalSnackBar(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: const Color(0xFFE05252),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: true);
   }
 
   Widget _formLabel(String text) => Text(

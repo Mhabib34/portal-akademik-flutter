@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import './soft_bottom_nav.dart';
 import '../pages/mahasiswa/mahasiswa_profil_page.dart';
 import '../pages/mahasiswa/mahasiswa_nilai_page.dart';
+import '../pages/mahasiswa/mahasiswa_jadwal_page.dart';
 
 // ============================================================
 // mahasiswa_nav_helper.dart — Logika navigasi bottom-nav Mahasiswa
 //   SATU tempat definisi nav items + routing.
 //   Semua halaman mahasiswa cukup import helper ini.
+import '../utils/app_toast.dart';
 //   Catatan: Mahasiswa punya FAB center action (Ajukan KRS),
 //   yang di-handle terpisah per halaman lewat parameter.
 // ============================================================
@@ -50,8 +52,18 @@ class MahasiswaNavHelper {
         return true;
 
       case 1:
-        // Jadwal — placeholder
-        _showPlaceholder(context, 'Jadwal');
+        // Jadwal
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MahasiswaJadwalPage(
+              userId: userId,
+              nama: nama,
+              username: username,
+              nim: nim,
+            ),
+          ),
+        );
         return true;
 
       case 2:
@@ -90,14 +102,7 @@ class MahasiswaNavHelper {
   }
 
   static void _showPlaceholder(BuildContext context, String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: const Color(0xFF1A1A2E),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   /// Convenience: buat SoftBottomNav yang sudah ter-wire dengan helper.

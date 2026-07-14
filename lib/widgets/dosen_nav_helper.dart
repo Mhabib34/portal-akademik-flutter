@@ -6,6 +6,7 @@ import './soft_bottom_nav.dart';
 // dosen_nav_helper.dart — Logika navigasi bottom-nav Dosen
 //   SATU tempat definisi nav items + routing.
 //   Semua halaman dosen cukup import helper ini.
+import '../utils/app_toast.dart';
 // ============================================================
 
 class DosenNavHelper {
@@ -63,14 +64,7 @@ class DosenNavHelper {
   }
 
   static void _showPlaceholder(BuildContext context, String fitur) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$fitur akan segera hadir'),
-        backgroundColor: const Color(0xFF1A1A2E),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   /// Convenience: buat SoftBottomNav yang sudah ter-wire dengan helper.

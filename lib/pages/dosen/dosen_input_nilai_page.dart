@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/api_client.dart';
 import '../../config/api_config.dart';
+import '../../utils/app_toast.dart';
 
 class DosenInputNilaiPage extends StatefulWidget {
   final String dosenId;
@@ -264,19 +265,13 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
       
       final response = await ApiClient.postJson(ApiConfig.simpanNilai, body: payload);
       if (response['status'] == 'ok') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nilai berhasil disimpan')),
-        );
+        AppToast.show(context, 'Nilai berhasil disimpan', isError: false);
         _fetchNilai(_selectedKelasId!);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Gagal menyimpan nilai')),
-        );
+        AppToast.show(context, response['message'] ?? 'Gagal menyimpan nilai', isError: false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      AppToast.show(context, 'Error: $e', isError: false);
     } finally {
       setState(() => _isLoading = false);
     }

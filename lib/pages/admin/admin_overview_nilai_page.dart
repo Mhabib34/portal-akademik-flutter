@@ -6,6 +6,7 @@ import '../../theme/app_theme.dart';
 import '../../services/api_client.dart';
 import '../../config/api_config.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../utils/app_toast.dart';
 
 class AdminOverviewNilaiPage extends StatefulWidget {
   const AdminOverviewNilaiPage({super.key});
@@ -115,9 +116,7 @@ class _AdminOverviewNilaiPageState extends State<AdminOverviewNilaiPage> {
 
   Future<void> _exportPdf() async {
     if (_selectedKelasId == null || _nilaiList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak ada data nilai untuk di-export.')),
-      );
+      AppToast.show(context, 'Tidak ada data nilai untuk di-export.', isError: false);
       return;
     }
 
@@ -316,19 +315,13 @@ class _AdminOverviewNilaiPageState extends State<AdminOverviewNilaiPage> {
       
       final response = await ApiClient.postJson(ApiConfig.simpanNilai, body: payload);
       if (response['status'] == 'ok') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nilai berhasil disimpan')),
-        );
+        AppToast.show(context, 'Nilai berhasil disimpan', isError: false);
         _fetchNilai(_selectedKelasId!);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Gagal menyimpan nilai')),
-        );
+        AppToast.show(context, response['message'] ?? 'Gagal menyimpan nilai', isError: false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      AppToast.show(context, 'Error: $e', isError: false);
     } finally {
       setState(() => _isLoading = false);
     }
