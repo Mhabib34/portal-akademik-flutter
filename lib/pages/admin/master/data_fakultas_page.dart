@@ -6,6 +6,7 @@ import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
 import '../../../models/fakultas_model.dart';
 import './data_prodi_page.dart';
+import '../../../utils/app_toast.dart';
 
 // ============================================================
 // data_fakultas_page.dart — CRUD Fakultas (admin)
@@ -134,15 +135,7 @@ class _DataFakultasPageState extends State<DataFakultasPage> {
   }
 
   void _showSnackBar(String msg, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   Future<void> _showFormDialog({Fakultas? existing}) async {

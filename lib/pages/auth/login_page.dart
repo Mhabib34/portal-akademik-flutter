@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../services/api_client.dart';
 import './change_password.dart';
 import '../common/home_router.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // login_page.dart — Halaman Login Portal Akademik
@@ -90,16 +91,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showSnackBar(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError
-            ? const Color(0xFFE05252)
-            : const Color(0xFF3BAA6B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   void _handleLupaPassword() {

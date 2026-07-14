@@ -1,0 +1,360 @@
+import 'package:flutter/material.dart';
+
+import '../../theme/app_theme.dart';
+import '../../config/api_config.dart';
+import '../../services/api_client.dart';
+import '../../widgets/mahasiswa_nav_helper.dart';
+import '../../widgets/ajukan_krs_bottom_sheet.dart';
+import '../../utils/app_toast.dart';
+
+class MahasiswaKrsPage extends StatefulWidget {
+  final String userId;
+  final String nama;
+  final String username;
+  final String nim;
+
+  const MahasiswaKrsPage({
+    super.key,
+    required this.userId,
+    required this.nama,
+    required this.username,
+    required this.nim,
+  });
+
+  @override
+  State<MahasiswaKrsPage> createState() => _MahasiswaKrsPageState();
+}
+
+class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
+  bool _isLoading = true;
+  String? _selectedTahunAjaranId;
+  List<Map<String, dynamic>> _listTahunAjaran = [];
+  List<Map<String, dynamic>> _allKrsData = [];
+  Map<String, dynamic>? _krsSayaData; 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTahunAjaran();
+  }
+
+  Future<void> _loadTahunAjaran() async {
+    try {
+      final res = await ApiClient.get(ApiConfig.getTahunAjaran);
+      if (res['status'] == 'ok') {
+        final List list = res['data'] as List? ?? [];
+        _listTahunAjaran = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        
+        if (_listTahunAjaran.isNotEmpty) {
+          final aktif = _listTahunAjaran.firstWhere(
+            (e) => int.tryParse(e['is_aktif']?.toString() ?? '0') == 1, 
+            orElse: () => _listTahunAjaran.first
+          );
+          _selectedTahunAjaranId = aktif['id']?.toString();
+        }
+      }
+    } catch (e) {
+      _showSnackBar('Gagal memuat daftar semester', isError: true);
+    }
+
+    await _fetchKrsSaya();
+  }
+
+  Future<void> _fetchKrsSaya() async {
+    setState(() => _isLoading = true);
+    try {
+      if (_allKrsData.isEmpty) {
+        final res = await ApiClient.get(ApiConfig.getKrs);
+        if (res['status'] == 'ok' && res['data'] != null) {
+          var data = res['data'];
+          if (data is List) {
+            _allKrsData = data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          } else if (data is Map) {
+            _allKrsData = [Map<String, dynamic>.from(data)];
+          }
+        }
+      }
+      
+      _filterKrsData();
+    } catch (e) {
+      _showSnackBar('Gagal memuat KRS Anda', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _filterKrsData() {
+    if (_selectedTahunAjaranId == null || _allKrsData.isEmpty) {
+      _krsSayaData = null;
+      return;
+    }
+    
+    try {
+      _krsSayaData = _allKrsData.firstWhere(
+        (k) => k['tahun_ajaran_id']?.toString() == _selectedTahunAjaranId,
+      );
+    } catch (e) {
+      _krsSayaData = null; // if not found
+    }
+  }
+
+  void _showSnackBar(String msg, {bool isError = false}) {
+    AppToast.show(context, msg, isError: isError);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEEF2FA), // Warna background biru muda sesuai desain
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildTopBar(),
+            const SizedBox(height: 16),
+            if (_listTahunAjaran.isNotEmpty) _buildSemesterChips(),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppColorsSoft.navy))
+                  : _buildListKrsSaya(),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: MahasiswaNavHelper.buildNav(
+        context: context,
+        currentIndex: 0, 
+        userId: widget.userId,
+        nama: widget.nama,
+        username: widget.username,
+        nim: widget.nim,
+        centerActionOnTap: () => AjukanKrsBottomSheet.show(context, onSuccess: _loadTahunAjaran),
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColorsSoft.navy,
+            child: ClipOval(
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Portal Akademik',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColorsSoft.navy,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar('Notifikasi segera hadir'),
+            icon: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColorsSoft.navy,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSemesterChips() {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        scrollDirection: Axis.horizontal,
+        itemCount: _listTahunAjaran.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final ta = _listTahunAjaran[index];
+          final id = ta['id']?.toString();
+          String semesterShort = ta['semester'] == 'Ganjil' ? 'Smt 1' : 'Smt 2';
+          String tahunShort = ta['nama']?.toString().split('/').first ?? ta['nama'] ?? '';
+          final label = '$semesterShort $tahunShort';
+          final isSelected = id == _selectedTahunAjaranId;
+
+          return GestureDetector(
+            onTap: () {
+              if (!isSelected && id != null) {
+                setState(() {
+                  _selectedTahunAjaranId = id;
+                  _filterKrsData();
+                });
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF1B1A30) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColorsSoft.textGray,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildListKrsSaya() {
+    if (_krsSayaData == null || (_krsSayaData?['mata_kuliah'] as List?)?.isEmpty == true) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.assignment_outlined, size: 60, color: AppColorsSoft.textGray.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            const Text('Anda belum mengajukan KRS', style: TextStyle(color: AppColorsSoft.textGray)),
+          ],
+        ),
+      );
+    }
+
+    final mkList = _krsSayaData?['mata_kuliah'] as List;
+    final status = _krsSayaData?['status'] ?? '-';
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            children: [
+              const Text('Status Pengajuan: ', style: TextStyle(color: AppColorsSoft.textGray)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: status == 'disetujui' ? const Color(0xFFE2F6EA) : const Color(0xFFFFF4D9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status.toString().toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: status == 'disetujui' ? const Color(0xFF12A150) : const Color(0xFFD38B00),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20).copyWith(bottom: 20),
+            itemCount: mkList.length,
+            itemBuilder: (context, index) {
+              final k = mkList[index];
+              final namaMk = k['nama_mk'] ?? '-';
+              final sks = k['sks']?.toString() ?? '0';
+              final dosen = k['dosen'] ?? '-';
+              final kelas = k['nama_kelas'] ?? '-';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            namaMk.toString(),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColorsSoft.navy,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.person_outline_rounded, size: 14, color: AppColorsSoft.textGray),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  dosen.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColorsSoft.textGray,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEAD9), // Light peach
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            kelas.toString(),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFD35500),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '$sks SKS',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColorsSoft.navy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}

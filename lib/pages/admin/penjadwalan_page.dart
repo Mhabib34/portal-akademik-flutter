@@ -4,6 +4,7 @@ import '../../widgets/admin_nav_helper.dart';
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../services/api_client.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // penjadwalan_page.dart — Manajemen Jadwal Kuliah (admin)
@@ -192,14 +193,7 @@ class _PenjadwalanPageState extends State<PenjadwalanPage> {
   }
 
   void _showSnack(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   // ---------------- Tambah / Edit Jadwal ----------------

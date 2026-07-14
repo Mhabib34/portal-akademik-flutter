@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../utils/app_toast.dart';
 
 class AdminKrsPage extends StatefulWidget {
   const AdminKrsPage({super.key});
@@ -79,14 +80,9 @@ class _AdminKrsPageState extends State<AdminKrsPage> {
       Navigator.pop(context); // Tutup loading
 
       if (response['status'] == 'ok') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(status == 'disetujui'
+        AppToast.show(context, status == 'disetujui'
                 ? 'KRS berhasil disetujui'
-                : 'KRS ditolak'),
-            backgroundColor: AppColorsSoft.navy,
-          ),
-        );
+                : 'KRS ditolak', isError: false);
         _fetchKrs(); // Refresh list
       } else {
         _showError(response['message'] ?? 'Gagal memproses KRS');
@@ -135,9 +131,7 @@ class _AdminKrsPageState extends State<AdminKrsPage> {
               onPressed: () {
                 final catatan = catatanController.text.trim();
                 if (catatan.isEmpty) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    const SnackBar(content: Text('Alasan tidak boleh kosong')),
-                  );
+                  AppToast.show(ctx, 'Alasan tidak boleh kosong', isError: false);
                   return;
                 }
                 Navigator.pop(ctx);
@@ -153,9 +147,7 @@ class _AdminKrsPageState extends State<AdminKrsPage> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: const Color(0xFFE05252)),
-    );
+    AppToast.show(context, msg, isError: true);
   }
 
   @override

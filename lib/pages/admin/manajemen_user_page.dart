@@ -6,6 +6,7 @@ import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import './master/data_dosen_page.dart';
 import './master/data_mahasiswa_page.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // manajemen_user_page.dart — Manajemen User (Admin)
@@ -129,12 +130,7 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
       _allUsers = merged;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal memuat data user'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.show(context, 'Gagal memuat data user', isError: true);
       }
     }
 
@@ -142,14 +138,7 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
   }
 
   void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, message, isError: isError);
   }
 
   Future<void> _toggleStatus(Map<String, dynamic> user) async {

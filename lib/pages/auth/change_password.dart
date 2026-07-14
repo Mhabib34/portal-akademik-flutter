@@ -4,6 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_client.dart';
 import '../common/home_router.dart';
+import '../../utils/app_toast.dart';
 
 // ============================================================
 // change_password.dart
@@ -176,15 +177,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage>
   }
 
   void _showSnack(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor:
-            isError ? const Color(0xFFE05252) : AppColorsSoft.navy,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    AppToast.show(context, msg, isError: isError);
   }
 
   // ----------------------------------------------------------------
