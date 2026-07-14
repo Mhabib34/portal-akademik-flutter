@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import './soft_bottom_nav.dart';
 import '../pages/mahasiswa/mahasiswa_profil_page.dart';
+import '../pages/mahasiswa/mahasiswa_nilai_page.dart';
 
 // ============================================================
 // mahasiswa_nav_helper.dart — Logika navigasi bottom-nav Mahasiswa
@@ -54,8 +55,18 @@ class MahasiswaNavHelper {
         return true;
 
       case 2:
-        // Nilai — placeholder
-        _showPlaceholder(context, 'Nilai');
+        // Nilai
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MahasiswaNilaiPage(
+              userId: userId,
+              nama: nama,
+              username: username,
+              nim: nim,
+            ),
+          ),
+        );
         return true;
 
       case 3:
