@@ -33,6 +33,7 @@ class DosenNavHelper {
     required int tappedIndex,
     required int currentIndex,
     VoidCallback? onLogout,
+    VoidCallback? onJadwalTap,
   }) {
     // Kalau tap di index yang sama, abaikan.
     if (tappedIndex == currentIndex) return true;
@@ -44,8 +45,12 @@ class DosenNavHelper {
         return true;
 
       case 1:
-        // Jadwal — placeholder, nanti bisa dihubungkan ke halaman jadwal dosen
-        _showPlaceholder(context, 'Jadwal');
+        // Jadwal
+        if (onJadwalTap != null) {
+          onJadwalTap();
+        } else {
+          _showPlaceholder(context, 'Jadwal');
+        }
         return true;
 
       case 2:
@@ -73,6 +78,7 @@ class DosenNavHelper {
     required int currentIndex,
     VoidCallback? onLogout,
     VoidCallback? onBerandaTap,
+    VoidCallback? onJadwalTap,
   }) {
     return SoftBottomNav(
       items: navItems,
@@ -87,6 +93,7 @@ class DosenNavHelper {
           tappedIndex: index,
           currentIndex: currentIndex,
           onLogout: onLogout,
+          onJadwalTap: onJadwalTap,
         );
       },
     );

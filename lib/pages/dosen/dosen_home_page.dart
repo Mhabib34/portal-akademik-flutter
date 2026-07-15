@@ -8,6 +8,7 @@ import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import 'dosen_input_nilai_page.dart';
+import 'dosen_jadwal_page.dart';
 import '../../utils/app_toast.dart';
 
 // ============================================================
@@ -218,6 +219,18 @@ class _DosenHomePageState extends State<DosenHomePage> {
         currentIndex: _navIndex,
         onLogout: _logout,
         onBerandaTap: () => setState(() => _navIndex = 0),
+        onJadwalTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DosenJadwalPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -461,6 +474,17 @@ class _DosenHomePageState extends State<DosenHomePage> {
                       ),
                     ),
                   );
+                } else if (m.label == 'Jadwal Mengajar') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DosenJadwalPage(
+                        userId: widget.userId,
+                        nama: widget.nama,
+                        username: widget.username,
+                      ),
+                    ),
+                  );
                 } else {
                   _handlePlaceholder(m.label);
                 }
@@ -512,7 +536,18 @@ class _DosenHomePageState extends State<DosenHomePage> {
         ),
         const Spacer(),
         GestureDetector(
-          onTap: () => _handlePlaceholder('Jadwal Mengajar'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DosenJadwalPage(
+                  userId: widget.userId,
+                  nama: widget.nama,
+                  username: widget.username,
+                ),
+              ),
+            );
+          },
           child: const Text(
             'Lihat Semua',
             style: TextStyle(
