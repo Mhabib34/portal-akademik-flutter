@@ -20,11 +20,14 @@ $kelasId      = trim($_GET['kelas_id']       ?? '');
 $tahunAjaranId = trim($_GET['tahun_ajaran_id'] ?? '');
 
 $sql = "SELECT n.id, n.mahasiswa_id, m.nim, m.nama AS nama_mahasiswa,
+               p.nama_prodi, f.nama_fakultas,
                n.kelas_id, mk.nama_mk, mk.sks,
                n.tugas, n.quiz_1, n.quiz_2, n.uts, n.kehadiran, n.uas,
                n.nilai_angka, n.nilai_huruf, n.bobot
         FROM nilai n
         JOIN mahasiswa m ON m.id = n.mahasiswa_id
+        LEFT JOIN prodi p ON p.id = m.prodi_id
+        LEFT JOIN fakultas f ON f.id = p.fakultas_id
         JOIN kelas k ON k.id = n.kelas_id
         JOIN mata_kuliah mk ON mk.id = k.mata_kuliah_id
         WHERE 1=1";
@@ -82,6 +85,8 @@ while ($row = $result->fetch_assoc()) {
         'mahasiswa_id'    => (string)$row['mahasiswa_id'],
         'nim'             => $row['nim'],
         'nama_mahasiswa'  => $row['nama_mahasiswa'],
+        'nama_prodi'      => $row['nama_prodi'] ?? '',
+        'nama_fakultas'   => $row['nama_fakultas'] ?? '',
         'kelas_id'        => (string)$row['kelas_id'],
         'nama_mk'         => $row['nama_mk'],
         'sks'             => (int)$row['sks'],

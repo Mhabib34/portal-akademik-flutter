@@ -9,6 +9,7 @@ import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import 'dosen_input_nilai_page.dart';
 import 'dosen_jadwal_page.dart';
+import 'dosen_mahasiswa_page.dart';
 import '../../utils/app_toast.dart';
 
 // ============================================================
@@ -479,6 +480,17 @@ class _DosenHomePageState extends State<DosenHomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => DosenJadwalPage(
+                        userId: widget.userId,
+                        nama: widget.nama,
+                        username: widget.username,
+                      ),
+                    ),
+                  );
+                } else if (m.label == 'Daftar Mahasiswa') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DosenMahasiswaPage(
                         userId: widget.userId,
                         nama: widget.nama,
                         username: widget.username,
