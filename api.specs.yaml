@@ -318,6 +318,10 @@ components:
           type: string
         nama_mahasiswa:
           type: string
+        nama_prodi:
+          type: string
+        nama_fakultas:
+          type: string
         kelas_id:
           type: string
         nama_mk:
