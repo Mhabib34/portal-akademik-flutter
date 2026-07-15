@@ -3,10 +3,12 @@ import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 class AdminKrsPage extends StatefulWidget {
-  const AdminKrsPage({super.key});
+  final String nama;
+  const AdminKrsPage({super.key, required this.nama});
 
   @override
   State<AdminKrsPage> createState() => _AdminKrsPageState();
@@ -161,7 +163,11 @@ class _AdminKrsPageState extends State<AdminKrsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTopBar(),
+              CustomTopBar(
+                title: 'Persetujuan KRS',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
+              ),
               const SizedBox(height: 16),
               _buildTabs(),
               const SizedBox(height: 24),
@@ -237,36 +243,6 @@ class _AdminKrsPageState extends State<AdminKrsPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppColorsSoft.navy, size: 20),
-          ),
-          const Expanded(
-            child: Text(
-              'Persetujuan KRS',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColorsSoft.navy,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () {}, // placeholder notifikasi
-            icon: const Icon(Icons.notifications_none_rounded,
-                color: AppColorsSoft.navy),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTabs() {
     final tabs = ['menunggu', 'disetujui', 'ditolak'];

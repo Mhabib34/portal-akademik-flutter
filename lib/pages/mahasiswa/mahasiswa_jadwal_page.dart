@@ -5,6 +5,7 @@ import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/mahasiswa_nav_helper.dart';
 import '../../widgets/ajukan_krs_bottom_sheet.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 class MahasiswaJadwalPage extends StatefulWidget {
@@ -103,7 +104,11 @@ class _MahasiswaJadwalPageState extends State<MahasiswaJadwalPage> {
         bottom: false,
         child: Column(
           children: [
-            _buildTopBar(),
+            CustomTopBar(
+              title: 'Jadwal Kuliah',
+              nama: widget.nama,
+              onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
+            ),
             const SizedBox(height: 16),
             _buildHariChips(),
             const SizedBox(height: 16),
@@ -127,44 +132,6 @@ class _MahasiswaJadwalPageState extends State<MahasiswaJadwalPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColorsSoft.navy,
-            child: Text(
-              widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'M',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Jadwal Kuliah',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColorsSoft.navy,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () => _showSnackBar('Notifikasi segera hadir'),
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildHariChips() {
     return SizedBox(

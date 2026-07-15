@@ -54,7 +54,7 @@ class AdminNavHelper {
         // Jadwal → PenjadwalanPage
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const PenjadwalanPage()),
+          MaterialPageRoute(builder: (_) => PenjadwalanPage(nama: nama)),
         );
         return true;
 

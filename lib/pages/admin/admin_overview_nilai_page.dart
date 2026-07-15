@@ -6,10 +6,12 @@ import '../../theme/app_theme.dart';
 import '../../services/api_client.dart';
 import '../../config/api_config.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 class AdminOverviewNilaiPage extends StatefulWidget {
-  const AdminOverviewNilaiPage({super.key});
+  final String nama;
+  const AdminOverviewNilaiPage({super.key, required this.nama});
 
   @override
   State<AdminOverviewNilaiPage> createState() => _AdminOverviewNilaiPageState();
@@ -343,25 +345,24 @@ class _AdminOverviewNilaiPageState extends State<AdminOverviewNilaiPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FE), // Soft blueish background from mockup
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Overview Nilai',
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColorsSoft.navy,
-                          ),
-                        ),
+            CustomTopBar(
+              title: 'Overview Nilai',
+              nama: widget.nama,
+              onBack: () => Navigator.pop(context),
+            ),
+            Expanded(
+              child: Stack(
+                children: [
+                  CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                         const SizedBox(height: 8),
                         const Text(
                           'Kelola dan tinjau performa akademik mahasiswa secara real-time dengan transparansi penuh.',
@@ -519,15 +520,17 @@ class _AdminOverviewNilaiPageState extends State<AdminOverviewNilaiPage> {
                       ),
                     ),
                   ),
-              ],
-            ),
-            
-            if (_isLoading)
-              const Center(
-                child: CircularProgressIndicator(),
+                ],
               ),
-          ],
-        ),
+              if (_isLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+            ],
+          ),
+          ),
+        ],
+      ),
       ),
       bottomNavigationBar: AdminNavHelper.buildNav(context: context, currentIndex: -1),
     );

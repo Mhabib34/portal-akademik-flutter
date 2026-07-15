@@ -6,6 +6,7 @@ import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
 import '../../../models/fakultas_model.dart';
 import './data_prodi_page.dart';
+import '../../../widgets/custom_top_bar.dart';
 import '../../../utils/app_toast.dart';
 
 // ============================================================
@@ -69,7 +70,8 @@ const List<Map<String, dynamic>> _iconPalette = [
 ];
 
 class DataFakultasPage extends StatefulWidget {
-  const DataFakultasPage({super.key});
+  final String nama;
+  const DataFakultasPage({super.key, this.nama = ''});
 
   @override
   State<DataFakultasPage> createState() => _DataFakultasPageState();
@@ -368,7 +370,7 @@ class _DataFakultasPageState extends State<DataFakultasPage> {
       context,
       MaterialPageRoute(
         builder: (_) =>
-            DataProdiPage(fakultasId: f.id, namaFakultas: f.namaFakultas),
+            DataProdiPage(fakultasId: f.id, namaFakultas: f.namaFakultas, nama: widget.nama),
       ),
     ).then((_) => _loadData());
   }
@@ -382,42 +384,24 @@ class _DataFakultasPageState extends State<DataFakultasPage> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColorsSoft.navy,
-                      ),
+              CustomTopBar(
+                title: 'Data Fakultas',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
+                trailing: GestureDetector(
+                  onTap: () => _showFormDialog(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColorsSoft.navy,
+                      shape: BoxShape.circle,
                     ),
-                    const Text(
-                      'Data Fakultas',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColorsSoft.navy,
-                      ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _showFormDialog(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColorsSoft.navy,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               Padding(

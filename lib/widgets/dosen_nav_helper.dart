@@ -34,6 +34,8 @@ class DosenNavHelper {
     required int currentIndex,
     VoidCallback? onLogout,
     VoidCallback? onJadwalTap,
+    VoidCallback? onNilaiTap,
+    VoidCallback? onProfilTap,
   }) {
     // Kalau tap di index yang sama, abaikan.
     if (tappedIndex == currentIndex) return true;
@@ -54,13 +56,22 @@ class DosenNavHelper {
         return true;
 
       case 2:
-        // Nilai — placeholder, nanti bisa dihubungkan ke halaman input nilai
-        _showPlaceholder(context, 'Nilai');
+        // Nilai
+        if (onNilaiTap != null) {
+          onNilaiTap();
+        } else {
+          _showPlaceholder(context, 'Nilai');
+        }
         return true;
 
       case 3:
-        // Profil → logout
-        if (onLogout != null) onLogout();
+        // Profil
+        if (onProfilTap != null) {
+          onProfilTap();
+        } else {
+          // Fallback to logout if profil is not hooked up yet, or just placeholder.
+          if (onLogout != null) onLogout();
+        }
         return true;
 
       default:
@@ -79,6 +90,8 @@ class DosenNavHelper {
     VoidCallback? onLogout,
     VoidCallback? onBerandaTap,
     VoidCallback? onJadwalTap,
+    VoidCallback? onNilaiTap,
+    VoidCallback? onProfilTap,
   }) {
     return SoftBottomNav(
       items: navItems,
@@ -94,6 +107,8 @@ class DosenNavHelper {
           currentIndex: currentIndex,
           onLogout: onLogout,
           onJadwalTap: onJadwalTap,
+          onNilaiTap: onNilaiTap,
+          onProfilTap: onProfilTap,
         );
       },
     );

@@ -5,6 +5,7 @@ import '../../../theme/app_theme.dart';
 import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
 import '../../../models/ruang_model.dart';
+import '../../../widgets/custom_top_bar.dart';
 import '../../../utils/app_toast.dart';
 
 const List<Map<String, dynamic>> _iconPalette = [
@@ -36,7 +37,8 @@ const List<Map<String, dynamic>> _iconPalette = [
 ];
 
 class DataRuangPage extends StatefulWidget {
-  const DataRuangPage({super.key});
+  final String nama;
+  const DataRuangPage({super.key, this.nama = ''});
 
   @override
   State<DataRuangPage> createState() => _DataRuangPageState();
@@ -200,42 +202,24 @@ class _DataRuangPageState extends State<DataRuangPage> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColorsSoft.navy,
-                      ),
+              CustomTopBar(
+                title: 'Data Ruang',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
+                trailing: GestureDetector(
+                  onTap: () => _showFormDialog(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColorsSoft.navy,
+                      shape: BoxShape.circle,
                     ),
-                    const Text(
-                      'Data Ruang',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColorsSoft.navy,
-                      ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _showFormDialog(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColorsSoft.navy,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               Padding(

@@ -1,101 +1,71 @@
 import 'package:flutter/material.dart';
-
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/mahasiswa_nav_helper.dart';
+import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import '../auth/change_password.dart';
+import 'dosen_input_nilai_page.dart';
+import 'dosen_jadwal_page.dart';
 import '../../utils/app_toast.dart';
 import '../../widgets/custom_top_bar.dart';
 
 // ============================================================
-// mahasiswa_profil_page.dart — Halaman Profil Mahasiswa
-//   Data dari API: nama, nim, prodi (via get_prodi), alamat.
-//   Desain sesuai referensi UI (avatar besar tengah, info card,
-//   ganti password, logout).
+// dosen_profil_page.dart — Halaman Profil Dosen
+//   Desain disamakan dengan profil mahasiswa (avatar besar,
+//   info card, ganti password, logout).
 // ============================================================
 
-class MahasiswaProfilPage extends StatefulWidget {
+class DosenProfilPage extends StatefulWidget {
   final String userId;
   final String nama;
   final String username;
-  final String nim;
 
-  const MahasiswaProfilPage({
+  const DosenProfilPage({
     super.key,
     required this.userId,
     required this.nama,
     required this.username,
-    required this.nim,
   });
 
   @override
-  State<MahasiswaProfilPage> createState() => _MahasiswaProfilPageState();
+  State<DosenProfilPage> createState() => _DosenProfilPageState();
 }
 
-class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
+class _DosenProfilPageState extends State<DosenProfilPage> {
+  final int _navIndex = 3; // Index Profil
   bool _isLoading = true;
-  final int _navIndex = 3; // Profil aktif
-
+  
   String _nama = '-';
-  String _nim = '-';
-  String _namaProdi = '-';
-  String _alamat = '-';
-
-
+  String _nidn = '-';
+  String _hp = '-';
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _loadProfil();
   }
 
-  Future<void> _loadProfile() async {
+  Future<void> _loadProfil() async {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Ambil data mahasiswa (role mahasiswa -> data sendiri)
-      final mhsRes = await ApiClient.get(ApiConfig.getMahasiswa);
-      if (mhsRes['status'] == 'ok' && mhsRes['data'] != null) {
-        final data = mhsRes['data'] as Map<String, dynamic>;
+      final res = await ApiClient.get(ApiConfig.getDosen);
+      if (res['status'] == 'ok' && res['data'] != null) {
+        final data = res['data'] as Map<String, dynamic>;
         _nama = data['nama']?.toString() ?? '-';
-        _nim = data['nim']?.toString() ?? '-';
-        _alamat = data['alamat']?.toString() ?? '-';
-
-        // 2. Resolve prodi_id ke nama_prodi
-        final prodiId = data['prodi_id']?.toString();
-        if (prodiId != null && prodiId.isNotEmpty) {
-          await _resolveProdi(prodiId);
-        }
+        _nidn = data['nidn']?.toString() ?? '-';
+        _hp = data['no_hp']?.toString() ?? '-';
       }
     } catch (_) {
       // fallback: gunakan data dari widget params
       _nama = widget.nama;
-      _nim = widget.nim;
+      _nidn = widget.username;
     }
 
     if (mounted) setState(() => _isLoading = false);
-  }
-
-  Future<void> _resolveProdi(String prodiId) async {
-    try {
-      final prodiRes = await ApiClient.get(ApiConfig.getProdi);
-      if (prodiRes['status'] == 'ok') {
-        final List prodiList = prodiRes['data'] as List? ?? [];
-        for (final p in prodiList) {
-          final map = p as Map<String, dynamic>;
-          if (map['id']?.toString() == prodiId) {
-            _namaProdi = map['nama_prodi']?.toString() ?? '-';
-            break;
-          }
-        }
-      }
-    } catch (_) {
-      // biarkan '-'
-    }
   }
 
 
@@ -105,7 +75,6 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     if (konfirmasi != true) return;
 
     await AuthService.logout();
-    // Tunggu animasi dialog selesai sebelum destroy rute
     await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
 
@@ -116,8 +85,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     );
   }
 
-
-  void _openChangePassword() {
+  void _navigateToChangePassword() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -125,10 +93,41 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
           userId: widget.userId,
           nama: widget.nama,
           username: widget.username,
-          role: 'user',
-          nim: widget.nim,
+          role: 'dosen',
+          nim: widget.username, // using username (nidn) for nim
           isForced: false,
         ),
+      ),
+    );
+  }
+  
+  // Method helpers for Bottom Navigation across pages
+  void _navToJadwal() {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => DosenJadwalPage(
+          userId: widget.userId,
+          nama: widget.nama,
+          username: widget.username,
+        ),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+    );
+  }
+
+  void _navToNilai() {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => DosenInputNilaiPage(
+          userId: widget.userId,
+          nama: widget.nama,
+          username: widget.username,
+        ),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
     );
   }
@@ -164,13 +163,16 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
           ),
         ),
       ),
-      bottomNavigationBar: MahasiswaNavHelper.buildNav(
+      bottomNavigationBar: DosenNavHelper.buildNav(
         context: context,
         currentIndex: _navIndex,
-        userId: widget.userId,
-        nama: widget.nama,
-        username: widget.username,
-        nim: widget.nim,
+        onLogout: _logout,
+        onBerandaTap: () {
+          Navigator.popUntil(context, (route) => route.isFirst);
+        },
+        onJadwalTap: _navToJadwal,
+        onNilaiTap: _navToNilai,
+        onProfilTap: () {}, // Already here
       ),
     );
   }
@@ -178,7 +180,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   // ---- Header ----
   Widget _buildTopBar() {
     return CustomTopBar(
-      title: 'Profil Mahasiswa',
+      title: 'Profil Dosen',
       nama: widget.nama,
       onBack: () => Navigator.pop(context),
     );
@@ -192,7 +194,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
         height: 110,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
@@ -219,7 +221,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
             ),
             child: Center(
               child: Text(
-                _nama.isNotEmpty ? _nama[0].toUpperCase() : 'M',
+                _nama.isNotEmpty ? _nama[0].toUpperCase() : 'D',
                 style: const TextStyle(
                   fontSize: 38,
                   fontWeight: FontWeight.w800,
@@ -233,7 +235,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     );
   }
 
-  // ---- Nama, NIM, Prodi ----
+  // ---- Nama & NIDN ----
   Widget _buildIdentity() {
     return Column(
       children: [
@@ -248,7 +250,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
         ),
         const SizedBox(height: 4),
         Text(
-          _nim,
+          _nidn,
           style: const TextStyle(
             fontSize: 14,
             color: AppColorsSoft.textGray,
@@ -256,9 +258,9 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          _namaProdi.toUpperCase(),
-          style: const TextStyle(
+        const Text(
+          'DOSEN',
+          style: TextStyle(
             fontSize: 12,
             color: AppColorsSoft.textGrayLight,
             fontWeight: FontWeight.w700,
@@ -269,7 +271,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     );
   }
 
-  // ---- Card Informasi Mahasiswa ----
+  // ---- Card Informasi Dosen ----
   Widget _buildInfoCard() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -278,7 +280,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Informasi Mahasiswa',
+            'Informasi Dosen',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -290,24 +292,16 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
             icon: Icons.badge_outlined,
             iconBg: const Color(0xFFDCEBFF),
             iconColor: const Color(0xFF2E6FE0),
-            label: 'NIM',
-            value: _nim,
+            label: 'NIDN',
+            value: _nidn,
           ),
           _divider(),
           _infoRow(
-            icon: Icons.school_rounded,
-            iconBg: const Color(0xFFEEE3FF),
-            iconColor: const Color(0xFF8B5CF6),
-            label: 'Program Studi',
-            value: _namaProdi,
-          ),
-          _divider(),
-          _infoRow(
-            icon: Icons.location_on_outlined,
+            icon: Icons.phone_android_rounded,
             iconBg: const Color(0xFFD9F5E4),
             iconColor: const Color(0xFF12A150),
-            label: 'Alamat',
-            value: _alamat,
+            label: 'No. Handphone',
+            value: _hp.isEmpty ? '-' : _hp,
           ),
         ],
       ),
@@ -365,7 +359,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   }
 
   Widget _divider() {
-    return Divider(
+    return const Divider(
       height: 1,
       color: AppColorsSoft.fieldFill,
       thickness: 1,
@@ -380,7 +374,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
         children: [
           // Ganti Password
           InkWell(
-            onTap: _openChangePassword,
+            onTap: _navigateToChangePassword,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(28),
             ),
@@ -421,7 +415,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
               ),
             ),
           ),
-          Divider(
+          const Divider(
             height: 1,
             indent: 24,
             endIndent: 24,
@@ -441,8 +435,8 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFE0E0),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFE0E0),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

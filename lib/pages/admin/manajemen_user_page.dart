@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
@@ -28,7 +29,8 @@ import '../../utils/app_toast.dart';
 enum _RoleFilter { semua, dosen, mahasiswa }
 
 class ManajemenUserPage extends StatefulWidget {
-  const ManajemenUserPage({super.key});
+  final String nama;
+  const ManajemenUserPage({super.key, required this.nama});
 
   @override
   State<ManajemenUserPage> createState() => _ManajemenUserPageState();
@@ -301,7 +303,7 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DataDosenPage()),
+                  MaterialPageRoute(builder: (_) => DataDosenPage(nama: widget.nama)),
                 ).then((_) => _loadData());
               },
               leading: const CircleAvatar(
@@ -323,7 +325,7 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
                 Navigator.pop(ctx);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DataMahasiswaPage()),
+                  MaterialPageRoute(builder: (_) => DataMahasiswaPage(nama: widget.nama)),
                 ).then((_) => _loadData());
               },
               leading: const CircleAvatar(
@@ -359,85 +361,76 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
             onRefresh: _loadData,
             child: ListView(
               controller: _scrollCtrl,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
               children: [
-                _buildTopBar(),
-                const SizedBox(height: 20),
-                _buildSearchBar(),
-                const SizedBox(height: 14),
-                _buildFilterChips(),
-                const SizedBox(height: 18),
-                if (_isLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: CircularProgressIndicator(
+                CustomTopBar(
+                  title: 'Manajemen User',
+                  nama: widget.nama,
+                  onBack: () => Navigator.pop(context),
+                  trailing: GestureDetector(
+                    onTap: _openAddChoice,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
                         color: AppColorsSoft.navy,
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(Icons.add_rounded, color: Colors.white),
                     ),
-                  )
-                else if (visibleList.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: Text(
-                        _searchQuery.isEmpty
-                            ? 'Belum ada data user'
-                            : 'User tidak ditemukan',
-                        style: const TextStyle(color: AppColorsSoft.textGray),
-                      ),
-                    ),
-                  )
-                else ...[
-                  ...visibleList.map(_buildUserCard),
-                  if (_visibleCount < _filteredUsers.length)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColorsSoft.navy,
-                        ),
-                      ),
-                    ),
-                ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      _buildSearchBar(),
+                      const SizedBox(height: 14),
+                      _buildFilterChips(),
+                      const SizedBox(height: 18),
+                      if (_isLoading)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 40),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColorsSoft.navy,
+                            ),
+                          ),
+                        )
+                      else if (visibleList.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: Center(
+                            child: Text(
+                              _searchQuery.isEmpty
+                                  ? 'Belum ada data user'
+                                  : 'User tidak ditemukan',
+                              style: const TextStyle(color: AppColorsSoft.textGray),
+                            ),
+                          ),
+                        )
+                      else ...[
+                        ...visibleList.map(_buildUserCard),
+                        if (_visibleCount < _filteredUsers.length)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColorsSoft.navy,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColorsSoft.navy),
-        ),
-        const Expanded(
-          child: Text(
-            'Manajemen User',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: _openAddChoice,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: AppColorsSoft.navy,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add_rounded, color: Colors.white),
-          ),
-        ),
-      ],
     );
   }
 

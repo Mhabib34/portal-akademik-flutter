@@ -16,8 +16,11 @@ import '../../../utils/app_toast.dart';
 //   unik per dosen_id di client), karena tidak ada di schema Dosen.
 // ============================================================
 
+import '../../../widgets/custom_top_bar.dart';
+
 class DataDosenPage extends StatefulWidget {
-  const DataDosenPage({super.key});
+  final String nama;
+  const DataDosenPage({super.key, this.nama = ''});
 
   @override
   State<DataDosenPage> createState() => _DataDosenPageState();
@@ -367,10 +370,35 @@ class _DataDosenPageState extends State<DataDosenPage> {
             color: AppColorsSoft.navy,
             onRefresh: _loadData,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
               children: [
-                _buildTopBar(),
-                const SizedBox(height: 20),
+                CustomTopBar(
+                  title: 'Data Dosen',
+                  nama: widget.nama,
+                  onBack: () => Navigator.pop(context),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () => _openForm(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: AppColorsSoft.navy,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.add_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
                 _buildSearchBar(),
                 const SizedBox(height: 16),
                 _buildStatsRow(),
@@ -398,6 +426,9 @@ class _DataDosenPageState extends State<DataDosenPage> {
                   )
                 else
                   ..._filteredDosen.map(_buildDosenCard),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -406,45 +437,6 @@ class _DataDosenPageState extends State<DataDosenPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColorsSoft.navy),
-        ),
-        const Text(
-          'Data Dosen',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: () => _openForm(),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: AppColorsSoft.navy,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add_rounded, color: Colors.white),
-          ),
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildSearchBar() {
     return Container(

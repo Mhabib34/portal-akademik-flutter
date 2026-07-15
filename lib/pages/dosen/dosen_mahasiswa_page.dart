@@ -7,6 +7,11 @@ import '../../services/auth_service.dart';
 import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
+import 'dosen_profil_page.dart';
+import 'dosen_jadwal_page.dart';
+import 'dosen_input_nilai_page.dart';
+import 'dosen_mahasiswa_detail_page.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 // ============================================================
@@ -180,9 +185,10 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
           bottom: false,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                child: _buildTopBar(),
+              CustomTopBar(
+                title: _selectedKelasName.isNotEmpty ? 'Daftar Mahasiswa – $_selectedKelasName' : 'Daftar Mahasiswa',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context), // this is a sub-page accessed from home
               ),
               _buildFilterAndSearch(),
               const SizedBox(height: 12),
@@ -211,59 +217,52 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
         onBerandaTap: () {
            Navigator.popUntil(context, (route) => route.isFirst);
         },
+        onJadwalTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenJadwalPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
+        onNilaiTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenInputNilaiPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
+        onProfilTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenProfilPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTopBar() {
-    String title = 'Daftar Mahasiswa';
-    if (_selectedKelasName.isNotEmpty) {
-      // Create a short version of the name, e.g. "IMK A2"
-      // Assuming nama_mk is like "Interaksi Manusia & Komputer", we might not have the abbreviation easily,
-      // but we will just show the full name truncated or split.
-      // Let's just use the full name but handle overflow.
-      title = 'Daftar Mahasiswa – $_selectedKelasName';
-    }
-
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: _logout,
-          child: CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColorsSoft.navy,
-            child: Text(
-              widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'D',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: () => _handlePlaceholder('Notifikasi'),
-          icon: const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildFilterAndSearch() {
     return Padding(
@@ -415,7 +414,17 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
         final avatarText = colorIndex == 4 ? AppColorsSoft.navy : Colors.white; // dark text for light bg
 
         return InkWell(
-          onTap: () => _handlePlaceholder('Detail Mahasiswa'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DosenMahasiswaDetailPage(
+                  mahasiswaData: m,
+                  dosenNama: widget.nama,
+                ),
+              ),
+            );
+          },
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
