@@ -5,6 +5,7 @@ import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/mahasiswa_nav_helper.dart';
 import '../../widgets/ajukan_krs_bottom_sheet.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 class MahasiswaKrsPage extends StatefulWidget {
@@ -110,7 +111,11 @@ class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
         bottom: false,
         child: Column(
           children: [
-            _buildTopBar(),
+            CustomTopBar(
+              title: 'KRS Saya',
+              nama: widget.nama,
+              onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
+            ),
             const SizedBox(height: 16),
             if (_listTahunAjaran.isNotEmpty) _buildSemesterChips(),
             const SizedBox(height: 16),
@@ -134,40 +139,6 @@ class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColorsSoft.navy,
-            child: ClipOval(
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Portal Akademik',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColorsSoft.navy,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () => _showSnackBar('Notifikasi segera hadir'),
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSemesterChips() {
     return SizedBox(

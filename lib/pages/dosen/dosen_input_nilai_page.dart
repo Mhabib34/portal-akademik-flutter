@@ -3,15 +3,21 @@ import '../../theme/app_theme.dart';
 import '../../services/api_client.dart';
 import '../../config/api_config.dart';
 import '../../utils/app_toast.dart';
+import 'dosen_profil_page.dart';
+import 'dosen_jadwal_page.dart';
+import '../../widgets/dosen_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 
 class DosenInputNilaiPage extends StatefulWidget {
-  final String dosenId;
+  final String userId;
   final String nama;
+  final String username;
 
   const DosenInputNilaiPage({
     super.key,
-    required this.dosenId,
+    required this.userId,
     required this.nama,
+    required this.username,
   });
 
   @override
@@ -46,7 +52,7 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
     try {
       final response = await ApiClient.get(
         ApiConfig.getKelas,
-        queryParams: {'dosen_id': widget.dosenId},
+        queryParams: {'dosen_id': widget.userId},
       );
       if (response['status'] == 'ok') {
         _allKelasDosen = response['data'] ?? [];
@@ -293,38 +299,10 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
         child: Column(
           children: [
             // Top Bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColorsSoft.navy),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Text(
-                    'Input Nilai',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColorsSoft.navy,
-                    ),
-                  ),
-                  const Spacer(),
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColorsSoft.navy,
-                    child: Text(
-                      widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'D',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            CustomTopBar(
+              title: 'Input Nilai',
+              nama: widget.nama,
+              onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
             ),
             
             Expanded(
@@ -439,6 +417,42 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: DosenNavHelper.buildNav(
+        context: context,
+        currentIndex: 2, // Index Nilai
+        onBerandaTap: () {
+          Navigator.popUntil(context, (route) => route.isFirst);
+        },
+        onJadwalTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenJadwalPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
+        onNilaiTap: () {}, // Already here
+        onProfilTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenProfilPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
       ),
     );
   }

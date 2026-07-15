@@ -10,6 +10,7 @@ import '../auth/login_page.dart';
 import 'dosen_input_nilai_page.dart';
 import 'dosen_jadwal_page.dart';
 import 'dosen_mahasiswa_page.dart';
+import 'dosen_profil_page.dart';
 import '../../utils/app_toast.dart';
 
 // ============================================================
@@ -232,6 +233,30 @@ class _DosenHomePageState extends State<DosenHomePage> {
             ),
           );
         },
+        onNilaiTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DosenInputNilaiPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+            ),
+          );
+        },
+        onProfilTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DosenProfilPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -329,19 +354,13 @@ class _DosenHomePageState extends State<DosenHomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            height: 130,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColorsSoft.gradientLavender,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.image_outlined,
-                size: 30,
-                color: AppColorsSoft.navy,
-              ),
+         ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/images/banner_dosen.png',
+              height: 130,
+              width: double.infinity,
+              fit: BoxFit.fitHeight,
             ),
           ),
         ],
@@ -470,8 +489,9 @@ class _DosenHomePageState extends State<DosenHomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => DosenInputNilaiPage(
-                        dosenId: _dosenId,
+                        userId: widget.userId,
                         nama: widget.nama,
+                        username: widget.username,
                       ),
                     ),
                   );
@@ -491,6 +511,17 @@ class _DosenHomePageState extends State<DosenHomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => DosenMahasiswaPage(
+                        userId: widget.userId,
+                        nama: widget.nama,
+                        username: widget.username,
+                      ),
+                    ),
+                  );
+                } else if (m.label == 'Profil') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DosenProfilPage(
                         userId: widget.userId,
                         nama: widget.nama,
                         username: widget.username,

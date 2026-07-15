@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 import './master/data_fakultas_page.dart';
 import './master/data_prodi_page.dart';
 
@@ -32,10 +33,18 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
         child: SafeArea(
           bottom: false,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 110),
+            padding: const EdgeInsets.fromLTRB(0, 16, 0, 110),
             children: [
-              _buildTopBar(),
-              const SizedBox(height: 20),
+              CustomTopBar(
+                title: 'Fakultas & Prodi',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
               const Text(
                 'Manajemen Data',
                 textAlign: TextAlign.center,
@@ -64,7 +73,7 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
                 subtitle: 'Kelola daftar fakultas',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DataFakultasPage()),
+                  MaterialPageRoute(builder: (_) => DataFakultasPage(nama: widget.nama)),
                 ),
               ),
               const SizedBox(height: 14),
@@ -76,11 +85,14 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
                 subtitle: 'Kelola program studi per fakultas',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DataProdiPage()),
+                  MaterialPageRoute(builder: (_) => DataProdiPage(nama: widget.nama)),
                 ),
               ),
-              const SizedBox(height: 28),
-              _buildIllustration(),
+                    const SizedBox(height: 28),
+                    _buildIllustration(),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -93,36 +105,6 @@ class _FakultasProdiHubPageState extends State<FakultasProdiHubPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColorsSoft.navy),
-        ),
-        const Text(
-          'Fakultas & Prodi',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-        const Spacer(),
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: AppColorsSoft.navy,
-          child: Text(
-            widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'A',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildIllustration() {
     return Container(

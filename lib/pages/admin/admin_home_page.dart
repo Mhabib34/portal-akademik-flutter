@@ -295,7 +295,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF2E6FE0),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DataMahasiswaPage()),
+          MaterialPageRoute(builder: (_) => DataMahasiswaPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -305,7 +305,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF8B5CF6),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DataDosenPage()),
+          MaterialPageRoute(builder: (_) => DataDosenPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -315,7 +315,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFFE08A00),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DataMataKuliahPage()),
+          MaterialPageRoute(builder: (_) => DataMataKuliahPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -325,7 +325,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF2E6FE0),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DataKelasPage()),
+          MaterialPageRoute(builder: (_) => DataKelasPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -335,7 +335,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF12A150),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const PenjadwalanPage()),
+          MaterialPageRoute(builder: (_) => PenjadwalanPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -345,7 +345,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF3F51B5),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const DataRuangPage()),
+          MaterialPageRoute(builder: (_) => DataRuangPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -355,7 +355,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFFE05252),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AdminKrsPage()),
+          MaterialPageRoute(builder: (_) => AdminKrsPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -365,7 +365,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFFCBA400),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AdminOverviewNilaiPage()),
+          MaterialPageRoute(builder: (_) => AdminOverviewNilaiPage(nama: widget.nama)),
         ),
       ),
       _MenuData(
@@ -375,7 +375,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         const Color(0xFF12A150),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ManajemenUserPage()),
+          MaterialPageRoute(builder: (_) => ManajemenUserPage(nama: widget.nama)),
         ),
       ),
       _MenuData(

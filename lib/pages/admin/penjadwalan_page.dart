@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/admin_nav_helper.dart';
+import '../../widgets/custom_top_bar.dart';
 
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
@@ -35,11 +36,11 @@ const List<String> _hariList = [
   'Rabu',
   'Kamis',
   'Jumat',
-  'Sabtu',
 ];
 
 class PenjadwalanPage extends StatefulWidget {
-  const PenjadwalanPage({super.key});
+  final String nama;
+  const PenjadwalanPage({super.key, required this.nama});
 
   @override
   State<PenjadwalanPage> createState() => _PenjadwalanPageState();
@@ -599,35 +600,10 @@ class _PenjadwalanPageState extends State<PenjadwalanPage> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColorsSoft.navy,
-                      ),
-                    ),
-                    const Text(
-                      'Penjadwalan',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: AppColorsSoft.navy,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.notifications_none_rounded,
-                        color: AppColorsSoft.navy,
-                      ),
-                    ),
-                  ],
-                ),
+              CustomTopBar(
+                title: 'Penjadwalan',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
               ),
               Expanded(
                 child: _isLoading

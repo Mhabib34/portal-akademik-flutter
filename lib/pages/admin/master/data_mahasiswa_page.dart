@@ -16,8 +16,11 @@ import '../../../utils/app_toast.dart';
 //   menyediakan parameter pagination di get_mahasiswa.php).
 // ============================================================
 
+import '../../../widgets/custom_top_bar.dart';
+
 class DataMahasiswaPage extends StatefulWidget {
-  const DataMahasiswaPage({super.key});
+  final String nama;
+  const DataMahasiswaPage({super.key, this.nama = ''});
 
   @override
   State<DataMahasiswaPage> createState() => _DataMahasiswaPageState();
@@ -455,10 +458,35 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
             color: AppColorsSoft.navy,
             onRefresh: _loadData,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 24),
               children: [
-                _buildTopBar(),
-                const SizedBox(height: 20),
+                CustomTopBar(
+                  title: 'Data Mahasiswa',
+                  nama: widget.nama,
+                  onBack: () => Navigator.pop(context),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () => _openForm(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: AppColorsSoft.navy,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.add_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
                 _buildSearchBar(),
                 const SizedBox(height: 16),
                 _buildStatsChips(),
@@ -486,6 +514,9 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                   )
                 else
                   ..._filteredMahasiswa.map(_buildMahasiswaCard),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -494,37 +525,6 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColorsSoft.navy),
-        ),
-        const Text(
-          'Data Mahasiswa',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-        const Spacer(),
-        GestureDetector(
-          onTap: () => _openForm(),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: AppColorsSoft.navy,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add_rounded, color: Colors.white),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildSearchBar() {
     return Container(

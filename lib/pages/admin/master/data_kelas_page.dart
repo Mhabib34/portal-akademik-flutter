@@ -4,6 +4,7 @@ import '../../../widgets/admin_nav_helper.dart';
 import '../../../theme/app_theme.dart';
 import '../../../config/api_config.dart';
 import '../../../services/api_client.dart';
+import '../../../widgets/custom_top_bar.dart';
 import '../../../utils/app_toast.dart';
 
 // ============================================================
@@ -11,7 +12,8 @@ import '../../../utils/app_toast.dart';
 // ============================================================
 
 class DataKelasPage extends StatefulWidget {
-  const DataKelasPage({super.key});
+  final String nama;
+  const DataKelasPage({super.key, this.nama = ''});
 
   @override
   State<DataKelasPage> createState() => _DataKelasPageState();
@@ -419,42 +421,24 @@ class _DataKelasPageState extends State<DataKelasPage> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: AppColorsSoft.navy,
-                      ),
+              CustomTopBar(
+                title: 'Data Kelas',
+                nama: widget.nama,
+                onBack: () => Navigator.pop(context),
+                trailing: GestureDetector(
+                  onTap: () => _showFormDialog(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColorsSoft.navy,
+                      shape: BoxShape.circle,
                     ),
-                    const Text(
-                      'Data Kelas',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: AppColorsSoft.navy,
-                      ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _showFormDialog(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColorsSoft.navy,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               Padding(

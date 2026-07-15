@@ -8,6 +8,7 @@ import '../../config/api_config.dart';
 import '../../services/api_client.dart';
 import '../../widgets/mahasiswa_nav_helper.dart';
 import '../../widgets/ajukan_krs_bottom_sheet.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 class MahasiswaKhsPage extends StatefulWidget {
@@ -241,7 +242,11 @@ class _MahasiswaKhsPageState extends State<MahasiswaKhsPage> {
         bottom: false,
         child: Column(
           children: [
-            _buildTopBar(),
+            CustomTopBar(
+              title: 'Kartu Hasil Studi',
+              nama: widget.nama,
+              onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
+            ),
             const SizedBox(height: 16),
             if (_listTahunAjaran.isNotEmpty) _buildSemesterChips(),
             const SizedBox(height: 20),
@@ -323,44 +328,6 @@ class _MahasiswaKhsPageState extends State<MahasiswaKhsPage> {
     );
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColorsSoft.navy,
-            child: Text(
-              widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'M',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Portal Akademik',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColorsSoft.navy,
-              ),
-            ),
-          ),
-          IconButton(
-            onPressed: () => _showSnackBar('Notifikasi segera hadir'),
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSemesterChips() {
     return SizedBox(

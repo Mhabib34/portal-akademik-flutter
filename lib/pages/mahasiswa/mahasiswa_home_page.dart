@@ -379,19 +379,13 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColorsSoft.gradientLavender,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.school_rounded,
-                size: 40,
-                color: AppColorsSoft.navy,
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/images/banner_kuliah.png',
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.fitHeight,
             ),
           ),
         ],

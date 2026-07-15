@@ -7,6 +7,9 @@ import '../../services/auth_service.dart';
 import '../../widgets/dosen_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
+import 'dosen_profil_page.dart';
+import 'dosen_input_nilai_page.dart';
+import '../../widgets/custom_top_bar.dart';
 import '../../utils/app_toast.dart';
 
 // ============================================================
@@ -150,9 +153,10 @@ class _DosenJadwalPageState extends State<DosenJadwalPage> {
           bottom: false,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                child: _buildTopBar(),
+              CustomTopBar(
+                title: 'Jadwal Mengajar',
+                nama: widget.nama,
+                onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
               ),
               _buildDaySelector(),
               Expanded(
@@ -178,51 +182,41 @@ class _DosenJadwalPageState extends State<DosenJadwalPage> {
         currentIndex: _navIndex,
         onLogout: _logout,
         onBerandaTap: () {
-           // Go back to home
-           Navigator.popUntil(context, (route) => route.isFirst);
-        }
+          Navigator.popUntil(context, (route) => route.isFirst);
+        },
+        onJadwalTap: () {},
+        onNilaiTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenInputNilaiPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
+        onProfilTap: () {
+          Navigator.pushReplacement(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => DosenProfilPage(
+                userId: widget.userId,
+                nama: widget.nama,
+                username: widget.username,
+              ),
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTopBar() {
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: _logout,
-          child: CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColorsSoft.navy,
-            child: Text(
-              widget.nama.isNotEmpty ? widget.nama[0].toUpperCase() : 'D',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Text(
-            'Jadwal Mengajar',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColorsSoft.navy,
-            ),
-          ),
-        ),
-        IconButton(
-          onPressed: () => _handlePlaceholder('Notifikasi'),
-          icon: const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColorsSoft.navy,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildDaySelector() {
     return SizedBox(
