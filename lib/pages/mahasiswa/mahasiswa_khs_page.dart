@@ -340,8 +340,7 @@ class _MahasiswaKhsPageState extends State<MahasiswaKhsPage> {
         itemBuilder: (context, index) {
           final ta = _listTahunAjaran[index];
           final id = ta['id']?.toString();
-          // Singkat nama: "Semester Ganjil 2024" -> "Smt 1 2024"
-          String semesterShort = ta['semester'] == 'Ganjil' ? 'Smt 1' : 'Smt 2';
+          String semesterShort = ta['semester']?.toString() ?? '';
           // Kalau format namanya misal "2024/2025", ambil tahun pertama
           String tahunShort = ta['nama']?.toString().split('/').first ?? ta['nama'] ?? '';
           final label = '$semesterShort $tahunShort';

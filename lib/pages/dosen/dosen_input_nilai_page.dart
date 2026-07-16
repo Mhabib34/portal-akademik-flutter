@@ -29,7 +29,7 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
   String _errorMessage = '';
 
   List<dynamic> _allKelasDosen = [];
-  List<Map<String, dynamic>> _mataKuliahList = [];
+  List<dynamic> _mataKuliahList = [];
   List<dynamic> _kelasList = []; // Kelas for selected MK
   List<dynamic> _nilaiList = []; // Students in selected Kelas
 
@@ -40,40 +40,50 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
   @override
   void initState() {
     super.initState();
-    _fetchKelasDosen();
+    _fetchInitialData();
   }
 
-  Future<void> _fetchKelasDosen() async {
+  Future<void> _fetchInitialData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
 
     try {
-      final response = await ApiClient.get(
-        ApiConfig.getKelas,
-        queryParams: {'dosen_id': widget.userId},
-      );
-      if (response['status'] == 'ok') {
-        _allKelasDosen = response['data'] ?? [];
-        
-        // Ekstrak unique Mata Kuliah
-        final Map<String, String> mkMap = {};
-        for (var k in _allKelasDosen) {
-          final mkId = k['mata_kuliah_id']?.toString() ?? '';
-          final mkNama = k['nama_mk']?.toString() ?? 'Unknown';
-          if (mkId.isNotEmpty) {
-            mkMap[mkId] = mkNama;
-          }
-        }
-        
-        _mataKuliahList = mkMap.entries.map((e) => {
-          'id': e.key,
-          'nama_mk': e.value
-        }).toList();
+      // 1. Ambil dosenId yang benar
+      String dosenId = widget.userId;
+      final profilRes = await ApiClient.get(ApiConfig.getDosen);
+      if (profilRes['status'] == 'ok' && profilRes['data'] != null) {
+        dosenId = profilRes['data']['id']?.toString() ?? widget.userId;
+      }
 
+      // 2. Ambil semua kelas yang diajar dosen ini
+      final kelasRes = await ApiClient.get(
+        ApiConfig.getKelas,
+        queryParams: {'dosen_id': dosenId},
+      );
+      if (kelasRes['status'] == 'ok') {
+        _allKelasDosen = kelasRes['data'] ?? [];
       } else {
-        _errorMessage = response['message'] ?? 'Gagal memuat daftar kelas.';
+        _allKelasDosen = [];
+      }
+
+      // 3. Ambil data master Mata Kuliah
+      final mkRes = await ApiClient.get(ApiConfig.getMataKuliah);
+      if (mkRes['status'] == 'ok') {
+        final List<dynamic> allMk = mkRes['data'] ?? [];
+        
+        // 4. Filter Mata Kuliah hanya yang ada di daftar kelas dosen ini
+        final Set<String> myMkIds = _allKelasDosen.map((k) => k['mata_kuliah_id'].toString()).toSet();
+        
+        setState(() {
+          _mataKuliahList = allMk.where((mk) => myMkIds.contains(mk['id'].toString())).toList();
+          if (_mataKuliahList.isEmpty) {
+            _errorMessage = 'Data kelas kosong untuk dosen ini (API return ${_allKelasDosen.length} kelas)';
+          }
+        });
+      } else {
+        _errorMessage = mkRes['message'] ?? 'Gagal memuat mata kuliah.';
       }
     } catch (e) {
       _errorMessage = 'Terjadi kesalahan: $e';
@@ -89,6 +99,7 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
       _selectedMataKuliahId = mkId;
       _selectedKelasId = null;
       _nilaiList = [];
+      // Ambil langsung dari data lokal yang sudah difetch di awal
       _kelasList = _allKelasDosen.where((k) => k['mata_kuliah_id'].toString() == mkId).toList();
     });
   }
@@ -107,6 +118,11 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
       if (response['status'] == 'ok') {
         setState(() {
           _nilaiList = response['data'] ?? [];
+          if (_nilaiList.isEmpty) {
+            _errorMessage = 'Data mahasiswa kosong dari backend (Mungkin filter dosen_id di get_nilai.php memblokir data ini)';
+          } else {
+            _errorMessage = '';
+          }
         });
       } else {
         _errorMessage = response['message'] ?? 'Gagal memuat nilai.';
@@ -338,7 +354,7 @@ class _DosenInputNilaiPageState extends State<DosenInputNilaiPage> {
                                 items: _kelasList.map((k) {
                                   return DropdownMenuItem<String>(
                                     value: k['id'].toString(),
-                                    child: Text('${k['nama_kelas']} - Ruang ${k['nama_ruang'] ?? '-'}'),
+                                    child: Text(k['nama_kelas']),
                                   );
                                 }).toList(),
                                 onChanged: (val) {

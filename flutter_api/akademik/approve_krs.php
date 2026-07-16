@@ -74,6 +74,20 @@ $stmt = $conn->prepare(
 $stmt->bind_param('ssi', $status, $catatanAdmin, $krsId);
 $stmt->execute();
 
+// JIKA DISETUJUI, OTOMATIS MASUKKAN KE TABEL NILAI
+if ($status === 'disetujui') {
+    $insertNilai = $conn->prepare(
+        "INSERT IGNORE INTO nilai (mahasiswa_id, kelas_id)
+         SELECT krs.mahasiswa_id, kd.kelas_id 
+         FROM krs_detail kd 
+         JOIN krs ON krs.id = kd.krs_id
+         WHERE kd.krs_id = ?"
+    );
+    $insertNilai->bind_param('i', $krsId);
+    $insertNilai->execute();
+    $insertNilai->close();
+}
+
 echo json_encode(['status' => 'ok', 'message' => "KRS berhasil di-$status"]);
 
 $stmt->close();
