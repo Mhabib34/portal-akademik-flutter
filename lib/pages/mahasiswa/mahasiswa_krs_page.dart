@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
@@ -103,6 +106,100 @@ class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
     AppToast.show(context, msg, isError: isError);
   }
 
+  Future<void> _cetakKrs() async {
+    if (_krsSayaData == null || (_krsSayaData?['mata_kuliah'] as List?)?.isEmpty == true) {
+      _showSnackBar('Tidak ada data KRS untuk dicetak', isError: true);
+      return;
+    }
+
+    try {
+      final doc = pw.Document();
+
+      final List mkList = _krsSayaData?['mata_kuliah'] as List? ?? [];
+      final status = _krsSayaData?['status'] ?? '-';
+      
+      final ta = _listTahunAjaran.firstWhere((e) => e['id']?.toString() == _selectedTahunAjaranId, orElse: () => {});
+      final tahunAjaranStr = ta['nama'] ?? '-';
+      final semesterStr = ta['semester'] ?? '-';
+
+      int totalSks = 0;
+      for (var mk in mkList) {
+        totalSks += int.tryParse(mk['sks']?.toString() ?? '0') ?? 0;
+      }
+
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) {
+            return [
+              pw.Center(
+                child: pw.Text(
+                  'KARTU RENCANA STUDI (KRS)',
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('Nama: ${widget.nama}'),
+                      pw.Text('NIM: ${widget.nim}'),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('Tahun Ajaran: $tahunAjaranStr'),
+                      pw.Text('Semester: $semesterStr'),
+                      pw.Text('Status: ${status.toString().toUpperCase()}'),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                headers: ['No', 'Mata Kuliah', 'SKS', 'Dosen', 'Kelas'],
+                data: List<List<String>>.generate(
+                  mkList.length,
+                  (index) {
+                    final mk = mkList[index];
+                    return [
+                      '${index + 1}',
+                      mk['nama_mk']?.toString() ?? '-',
+                      mk['sks']?.toString() ?? '0',
+                      mk['dosen']?.toString() ?? '-',
+                      mk['nama_kelas']?.toString() ?? '-',
+                    ];
+                  },
+                ),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                cellAlignment: pw.Alignment.center,
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text('Total SKS: $totalSks', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                ],
+              ),
+            ];
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => doc.save(),
+        name: 'KRS_${widget.nim}_$tahunAjaranStr.pdf',
+      );
+    } catch (e) {
+      _showSnackBar('Terjadi kesalahan saat membuat PDF', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,6 +222,25 @@ class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
                   : _buildListKrsSaya(),
             ),
           ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: FloatingActionButton.extended(
+          onPressed: _cetakKrs,
+          backgroundColor: const Color(0xFF1B1A30),
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          icon: const Icon(Icons.print_rounded, color: Colors.white, size: 20),
+          label: const Text(
+            'Cetak KRS',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
         ),
       ),
       bottomNavigationBar: MahasiswaNavHelper.buildNav(
@@ -151,7 +267,7 @@ class _MahasiswaKrsPageState extends State<MahasiswaKrsPage> {
         itemBuilder: (context, index) {
           final ta = _listTahunAjaran[index];
           final id = ta['id']?.toString();
-          String semesterShort = ta['semester'] == 'Ganjil' ? 'Smt 1' : 'Smt 2';
+          String semesterShort = ta['semester']?.toString() ?? '';
           String tahunShort = ta['nama']?.toString().split('/').first ?? ta['nama'] ?? '';
           final label = '$semesterShort $tahunShort';
           final isSelected = id == _selectedTahunAjaranId;
