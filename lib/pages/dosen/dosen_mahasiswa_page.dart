@@ -12,7 +12,6 @@ import 'dosen_jadwal_page.dart';
 import 'dosen_input_nilai_page.dart';
 import 'dosen_mahasiswa_detail_page.dart';
 import '../../widgets/custom_top_bar.dart';
-import '../../utils/app_toast.dart';
 
 // ============================================================
 // dosen_mahasiswa_page.dart — Halaman Daftar Mahasiswa Dosen
@@ -74,11 +73,14 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
         );
         if (kelasRes['status'] == 'ok') {
           final List kList = kelasRes['data'] as List? ?? [];
-          _kelasList = kList.map((k) => Map<String, dynamic>.from(k as Map)).toList();
-          
+          _kelasList = kList
+              .map((k) => Map<String, dynamic>.from(k as Map))
+              .toList();
+
           if (_kelasList.isNotEmpty) {
             _selectedKelasId = _kelasList.first['id']?.toString();
-            _selectedKelasName = '${_kelasList.first['nama_mk']} ${_kelasList.first['nama_kelas']}';
+            _selectedKelasName =
+                '${_kelasList.first['nama_mk']} ${_kelasList.first['nama_kelas']}';
           }
         }
       }
@@ -97,7 +99,7 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
 
   Future<void> _loadMahasiswa() async {
     if (_selectedKelasId == null) return;
-    
+
     setState(() => _isLoading = true);
     try {
       final res = await ApiClient.get(
@@ -106,7 +108,9 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
       );
       if (res['status'] == 'ok') {
         final List mList = res['data'] as List? ?? [];
-        _mahasiswaList = mList.map((m) => Map<String, dynamic>.from(m as Map)).toList();
+        _mahasiswaList = mList
+            .map((m) => Map<String, dynamic>.from(m as Map))
+            .toList();
         _applySearch();
       } else {
         _mahasiswaList = [];
@@ -116,7 +120,7 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
       _mahasiswaList = [];
       _filteredMahasiswaList = [];
     }
-    
+
     if (mounted) {
       setState(() => _isLoading = false);
     }
@@ -124,15 +128,18 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
 
   void _onKelasChanged(String? kelasId) {
     if (kelasId == null || kelasId == _selectedKelasId) return;
-    
-    final selectedKelas = _kelasList.firstWhere((k) => k['id'].toString() == kelasId);
+
+    final selectedKelas = _kelasList.firstWhere(
+      (k) => k['id'].toString() == kelasId,
+    );
     setState(() {
       _selectedKelasId = kelasId;
-      _selectedKelasName = '${selectedKelas['nama_mk']} ${selectedKelas['nama_kelas']}';
+      _selectedKelasName =
+          '${selectedKelas['nama_mk']} ${selectedKelas['nama_kelas']}';
       // reset search
       _searchQuery = '';
     });
-    
+
     _loadMahasiswa();
   }
 
@@ -148,7 +155,7 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
       _filteredMahasiswaList = List.from(_mahasiswaList);
       return;
     }
-    
+
     final q = _searchQuery.toLowerCase();
     _filteredMahasiswaList = _mahasiswaList.where((m) {
       final nama = (m['nama_mahasiswa'] ?? '').toString().toLowerCase();
@@ -171,10 +178,6 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
     );
   }
 
-  void _handlePlaceholder(String fitur) {
-    AppToast.show(context, '$fitur akan segera hadir', isError: false);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,9 +189,13 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
           child: Column(
             children: [
               CustomTopBar(
-                title: _selectedKelasName.isNotEmpty ? 'Daftar Mahasiswa – $_selectedKelasName' : 'Daftar Mahasiswa',
+                title: _selectedKelasName.isNotEmpty
+                    ? 'Daftar Mahasiswa – $_selectedKelasName'
+                    : 'Daftar Mahasiswa',
                 nama: widget.nama,
-                onBack: () => Navigator.pop(context), // this is a sub-page accessed from home
+                onBack: () => Navigator.pop(
+                  context,
+                ), // this is a sub-page accessed from home
               ),
               _buildFilterAndSearch(),
               const SizedBox(height: 12),
@@ -215,17 +222,18 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
         currentIndex: _navIndex,
         onLogout: _logout,
         onBerandaTap: () {
-           Navigator.popUntil(context, (route) => route.isFirst);
+          Navigator.popUntil(context, (route) => route.isFirst);
         },
         onJadwalTap: () {
           Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => DosenJadwalPage(
-                userId: widget.userId,
-                nama: widget.nama,
-                username: widget.username,
-              ),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  DosenJadwalPage(
+                    userId: widget.userId,
+                    nama: widget.nama,
+                    username: widget.username,
+                  ),
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,
             ),
@@ -235,11 +243,12 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
           Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => DosenInputNilaiPage(
-                userId: widget.userId,
-                nama: widget.nama,
-                username: widget.username,
-              ),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  DosenInputNilaiPage(
+                    userId: widget.userId,
+                    nama: widget.nama,
+                    username: widget.username,
+                  ),
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,
             ),
@@ -249,11 +258,12 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
           Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => DosenProfilPage(
-                userId: widget.userId,
-                nama: widget.nama,
-                username: widget.username,
-              ),
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  DosenProfilPage(
+                    userId: widget.userId,
+                    nama: widget.nama,
+                    username: widget.username,
+                  ),
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,
             ),
@@ -262,7 +272,6 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
       ),
     );
   }
-
 
   Widget _buildFilterAndSearch() {
     return Padding(
@@ -283,7 +292,10 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
                 child: DropdownButton<String>(
                   value: _selectedKelasId,
                   isExpanded: true,
-                  icon: const Icon(Icons.arrow_drop_down_rounded, color: AppColorsSoft.navy),
+                  icon: const Icon(
+                    Icons.arrow_drop_down_rounded,
+                    color: AppColorsSoft.navy,
+                  ),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -300,17 +312,27 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
                 ),
               ),
             ),
-            
+
           // Search Bar
           TextField(
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
               hintText: 'Cari nama atau NIM...',
-              hintStyle: const TextStyle(color: AppColorsSoft.textGrayLight, fontSize: 14),
-              prefixIcon: const Icon(Icons.search_rounded, color: AppColorsSoft.textGrayLight, size: 20),
+              hintStyle: const TextStyle(
+                color: AppColorsSoft.textGrayLight,
+                fontSize: 14,
+              ),
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+                color: AppColorsSoft.textGrayLight,
+                size: 20,
+              ),
               filled: true,
               fillColor: AppColorsSoft.fieldFill.withOpacity(0.8),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: BorderSide.none,
@@ -393,8 +415,9 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
       children: _filteredMahasiswaList.map((m) {
         final nama = m['nama_mahasiswa']?.toString() ?? '-';
         final nim = m['nim']?.toString() ?? '-';
-        final prodi = m['nama_prodi']?.toString() ?? 'Informatika'; // Default if empty
-        
+        final prodi =
+            m['nama_prodi']?.toString() ?? 'Informatika'; // Default if empty
+
         // Generate Avatar Initials
         final names = nama.split(' ');
         String initials = '';
@@ -411,7 +434,9 @@ class _DosenMahasiswaPageState extends State<DosenMahasiswaPage> {
           const Color(0xFF90CAF9), // Light Blue
         ];
         final avatarBg = avatarColors[colorIndex];
-        final avatarText = colorIndex == 4 ? AppColorsSoft.navy : Colors.white; // dark text for light bg
+        final avatarText = colorIndex == 4
+            ? AppColorsSoft.navy
+            : Colors.white; // dark text for light bg
 
         return InkWell(
           onTap: () {

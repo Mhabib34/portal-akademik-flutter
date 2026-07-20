@@ -9,7 +9,6 @@ import '../auth/login_page.dart';
 import '../auth/change_password.dart';
 import 'dosen_input_nilai_page.dart';
 import 'dosen_jadwal_page.dart';
-import '../../utils/app_toast.dart';
 import '../../widgets/custom_top_bar.dart';
 
 // ============================================================
@@ -37,7 +36,7 @@ class DosenProfilPage extends StatefulWidget {
 class _DosenProfilPageState extends State<DosenProfilPage> {
   final int _navIndex = 3; // Index Profil
   bool _isLoading = true;
-  
+
   String _nama = '-';
   String _nidn = '-';
   String _hp = '-';
@@ -67,8 +66,6 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
 
     if (mounted) setState(() => _isLoading = false);
   }
-
-
 
   Future<void> _logout() async {
     final konfirmasi = await showLogoutDialog(context);
@@ -100,17 +97,18 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
       ),
     );
   }
-  
+
   // Method helpers for Bottom Navigation across pages
   void _navToJadwal() {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => DosenJadwalPage(
-          userId: widget.userId,
-          nama: widget.nama,
-          username: widget.username,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            DosenJadwalPage(
+              userId: widget.userId,
+              nama: widget.nama,
+              username: widget.username,
+            ),
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
@@ -121,11 +119,12 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => DosenInputNilaiPage(
-          userId: widget.userId,
-          nama: widget.nama,
-          username: widget.username,
-        ),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            DosenInputNilaiPage(
+              userId: widget.userId,
+              nama: widget.nama,
+              username: widget.username,
+            ),
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
@@ -147,7 +146,11 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
                 ? [
                     _buildTopBar(),
                     const SizedBox(height: 150),
-                    const Center(child: CircularProgressIndicator(color: AppColorsSoft.navy)),
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColorsSoft.navy,
+                      ),
+                    ),
                   ]
                 : [
                     _buildTopBar(),
@@ -322,10 +325,7 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(width: 14),
@@ -375,9 +375,7 @@ class _DosenProfilPageState extends State<DosenProfilPage> {
           // Ganti Password
           InkWell(
             onTap: _navigateToChangePassword,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(28),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               child: Row(
