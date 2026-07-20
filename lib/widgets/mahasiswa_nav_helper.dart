@@ -5,15 +5,6 @@ import '../pages/mahasiswa/mahasiswa_profil_page.dart';
 import '../pages/mahasiswa/mahasiswa_nilai_page.dart';
 import '../pages/mahasiswa/mahasiswa_jadwal_page.dart';
 
-// ============================================================
-// mahasiswa_nav_helper.dart — Logika navigasi bottom-nav Mahasiswa
-//   SATU tempat definisi nav items + routing.
-//   Semua halaman mahasiswa cukup import helper ini.
-import '../utils/app_toast.dart';
-//   Catatan: Mahasiswa punya FAB center action (Ajukan KRS),
-//   yang di-handle terpisah per halaman lewat parameter.
-// ============================================================
-
 class MahasiswaNavHelper {
   MahasiswaNavHelper._();
 
@@ -99,10 +90,6 @@ class MahasiswaNavHelper {
       default:
         return false;
     }
-  }
-
-  static void _showPlaceholder(BuildContext context, String fitur) {
-    AppToast.show(context, '$fitur akan segera hadir', isError: false);
   }
 
   /// Convenience: buat SoftBottomNav yang sudah ter-wire dengan helper.

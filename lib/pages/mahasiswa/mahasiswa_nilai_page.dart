@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../../theme/app_theme.dart';
 import '../../config/api_config.dart';
@@ -46,11 +43,16 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
       final res = await ApiClient.get(ApiConfig.getTahunAjaran);
       if (res['status'] == 'ok') {
         final List list = res['data'] as List? ?? [];
-        _listTahunAjaran = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-        
+        _listTahunAjaran = list
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+
         if (_listTahunAjaran.isNotEmpty) {
           // Cari yang aktif
-          final aktif = _listTahunAjaran.firstWhere((e) => int.tryParse(e['is_aktif']?.toString() ?? '0') == 1, orElse: () => _listTahunAjaran.first);
+          final aktif = _listTahunAjaran.firstWhere(
+            (e) => int.tryParse(e['is_aktif']?.toString() ?? '0') == 1,
+            orElse: () => _listTahunAjaran.first,
+          );
           _selectedTahunAjaranId = aktif['id']?.toString();
         }
       }
@@ -76,11 +78,14 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
     });
 
     try {
-      final res = await ApiClient.get(ApiConfig.getKhs, queryParams: {
-        'tahun_ajaran_id': _selectedTahunAjaranId ?? '',
-      });
+      final res = await ApiClient.get(
+        ApiConfig.getKhs,
+        queryParams: {'tahun_ajaran_id': _selectedTahunAjaranId ?? ''},
+      );
       if (res['status'] == 'ok') {
-        _khsData = res['data'] != null ? Map<String, dynamic>.from(res['data']) : null;
+        _khsData = res['data'] != null
+            ? Map<String, dynamic>.from(res['data'])
+            : null;
       } else {
         _khsData = null;
       }
@@ -98,102 +103,6 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
 
   void _showSnackBar(String msg, {bool isError = false}) {
     AppToast.show(context, msg, isError: isError);
-  }
-
-  Future<void> _cetakKhs() async {
-    if (_khsData == null) {
-      _showSnackBar('Tidak ada data KHS untuk dicetak', isError: true);
-      return;
-    }
-
-    try {
-      final doc = pw.Document();
-
-      final List mkList = _khsData?['mata_kuliah'] as List? ?? [];
-      final tahunAjaranStr = _khsData?['tahun_ajaran'] ?? '-';
-      final ipSemester = (_khsData?['ip_semester'] ?? 0).toString();
-      final totalSksSemester = (_khsData?['total_sks_semester'] ?? 0).toString();
-      final ipkKumulatif = (_khsData?['ipk_kumulatif'] ?? 0).toString();
-      final totalSksKumulatif = (_khsData?['total_sks_kumulatif'] ?? 0).toString();
-
-      doc.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(32),
-          build: (pw.Context context) {
-            return [
-              pw.Center(
-                child: pw.Text(
-                  'KARTU HASIL STUDI (KHS)',
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Nama: ${widget.nama}'),
-                      pw.Text('NIM: ${widget.nim}'),
-                    ],
-                  ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text('Tahun Ajaran: $tahunAjaranStr'),
-                    ],
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                headers: ['No', 'Mata Kuliah', 'SKS', 'Nilai Huruf', 'Nilai Angka'],
-                data: List<List<String>>.generate(
-                  mkList.length,
-                  (index) {
-                    final mk = mkList[index];
-                    return [
-                      '${index + 1}',
-                      mk['nama_mk']?.toString() ?? '-',
-                      mk['sks']?.toString() ?? '0',
-                      mk['nilai_huruf']?.toString() ?? '-',
-                      (mk['nilai_angka'] ?? 0).toString(),
-                    ];
-                  },
-                ),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                cellAlignment: pw.Alignment.center,
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.end,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text('IP Semester: $ipSemester', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('SKS Semester: $totalSksSemester'),
-                      pw.SizedBox(height: 10),
-                      pw.Text('IPK Kumulatif: $ipkKumulatif', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('Total SKS: $totalSksKumulatif'),
-                    ],
-                  ),
-                ],
-              ),
-            ];
-          },
-        ),
-      );
-
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => doc.save(),
-        name: 'KHS_${widget.nim}_$tahunAjaranStr.pdf',
-      );
-    } catch (e) {
-      _showSnackBar('Terjadi kesalahan saat membuat PDF', isError: true);
-    }
   }
 
   Color _getGradeColor(String grade) {
@@ -218,8 +127,10 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
     final sksLulus = (_khsData?['total_sks_kumulatif'] ?? 0).toString();
     final ipkVal = double.tryParse(ipkTotal) ?? 0.0;
     String predikat = 'MEMUASKAN';
-    if (ipkVal >= 3.5) predikat = 'CUMLAUDE';
-    else if (ipkVal >= 3.0) predikat = 'SANGAT MEMUASKAN';
+    if (ipkVal >= 3.5)
+      predikat = 'CUMLAUDE';
+    else if (ipkVal >= 3.0)
+      predikat = 'SANGAT MEMUASKAN';
 
     final mkList = (_khsData?['mata_kuliah'] as List?) ?? [];
 
@@ -234,26 +145,38 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
               CustomTopBar(
                 title: 'Nilai Mata Kuliah',
                 nama: widget.nama,
-                onBack: () => Navigator.popUntil(context, (route) => route.isFirst),
+                onBack: () =>
+                    Navigator.popUntil(context, (route) => route.isFirst),
               ),
               if (_listTahunAjaran.isNotEmpty) _buildSemesterDropdown(),
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: AppColorsSoft.navy))
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColorsSoft.navy,
+                        ),
+                      )
                     : ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 160),
                         children: [
                           _buildStatCard(ipkTotal, sksLulus, predikat, ipkVal),
                           const SizedBox(height: 24),
-                          ...mkList.map((mk) => _buildMataKuliahItem(mk)).toList(),
+                          ...mkList
+                              .map((mk) => _buildMataKuliahItem(mk))
+                              .toList(),
                           if (mkList.isEmpty)
                             const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(32.0),
-                                child: Text('Belum ada nilai di semester ini', style: TextStyle(color: AppColorsSoft.textGray)),
+                                child: Text(
+                                  'Belum ada nilai di semester ini',
+                                  style: TextStyle(
+                                    color: AppColorsSoft.textGray,
+                                  ),
+                                ),
                               ),
-                            )
+                            ),
                         ],
                       ),
               ),
@@ -273,7 +196,6 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
     );
   }
 
-
   Widget _buildSemesterDropdown() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -286,14 +208,17 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
             color: Colors.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedTahunAjaranId,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColorsSoft.textGray),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColorsSoft.textGray,
+          ),
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -319,7 +244,12 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
     );
   }
 
-  Widget _buildStatCard(String ipkTotal, String sksLulus, String predikat, double ipkVal) {
+  Widget _buildStatCard(
+    String ipkTotal,
+    String sksLulus,
+    String predikat,
+    double ipkVal,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: AppColorsSoft.card(),
@@ -370,7 +300,7 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -399,7 +329,11 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
                       ],
                     ),
                   ),
-                  Container(width: 1, height: 40, color: AppColorsSoft.fieldFill),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: AppColorsSoft.fieldFill,
+                  ),
                   Expanded(
                     child: Column(
                       children: [
@@ -424,7 +358,7 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ],
@@ -505,7 +439,7 @@ class _MahasiswaNilaiPageState extends State<MahasiswaNilaiPage> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

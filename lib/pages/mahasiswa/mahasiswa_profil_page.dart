@@ -8,7 +8,6 @@ import '../../widgets/mahasiswa_nav_helper.dart';
 import '../../widgets/logout_dialog.dart';
 import '../auth/login_page.dart';
 import '../auth/change_password.dart';
-import '../../utils/app_toast.dart';
 import '../../widgets/custom_top_bar.dart';
 
 // ============================================================
@@ -44,8 +43,6 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   String _nim = '-';
   String _namaProdi = '-';
   String _alamat = '-';
-
-
 
   @override
   void initState() {
@@ -98,8 +95,6 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
     }
   }
 
-
-
   Future<void> _logout() async {
     final konfirmasi = await showLogoutDialog(context);
     if (konfirmasi != true) return;
@@ -115,7 +110,6 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
       (route) => false,
     );
   }
-
 
   void _openChangePassword() {
     Navigator.push(
@@ -148,7 +142,11 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
                 ? [
                     _buildTopBar(),
                     const SizedBox(height: 150),
-                    const Center(child: CircularProgressIndicator(color: AppColorsSoft.navy)),
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColorsSoft.navy,
+                      ),
+                    ),
                   ]
                 : [
                     _buildTopBar(),
@@ -328,10 +326,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(width: 14),
@@ -365,11 +360,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
   }
 
   Widget _divider() {
-    return Divider(
-      height: 1,
-      color: AppColorsSoft.fieldFill,
-      thickness: 1,
-    );
+    return Divider(height: 1, color: AppColorsSoft.fieldFill, thickness: 1);
   }
 
   // ---- Card Aksi (Ganti Password & Logout) ----
@@ -381,9 +372,7 @@ class _MahasiswaProfilPageState extends State<MahasiswaProfilPage> {
           // Ganti Password
           InkWell(
             onTap: _openChangePassword,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(28),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               child: Row(
